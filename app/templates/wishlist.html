@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}My Wishlist - Pure Weaves{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>My Wishlist</h1>
+</div>
+<div class="grid" id="productGrid">
+  {% for product in products %}
+  <div class="card" id="wishlist_card_{{ product.id }}">
+    <div class="card-img-wrap">
+      <div class="cat-badge">{{ product.category_rel.name }}</div>
+      <button class="wishlist-btn active" onclick="removeFromWishlist(Number('{{ product.id }}'))" id="wish_{{ product.id }}">
+        ❤️
+      </button>
+      <img src="{{ product.image_path }}" alt="{{ product.name }}" loading="lazy" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
+    </div>
+    <div class="card-body">
+      <div class="card-name">{{ product.name }}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;">
+        <div class="card-price">₹{{ "%.0f"|format(product.price) }}</div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-cart" onclick="addToCart(Number('{{ product.id }}'))">Add to Cart</button>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted);">
+    Your wishlist is empty. 
+    <br><br>
+    <a href="{{ url_for('main.catalog') }}" class="btn-primary" style="display:inline-block;">Browse Catalog</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function removeFromWishlist(productId) {
+  fetch('/api/wishlist/toggle', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ product_id: productId })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'removed') {
+      const card = document.getElementById('wishlist_card_' + productId);
+      if (card) {
+        card.remove();
+        showToast('💔 Removed from wishlist');
+      }
+    }
+  });
+}
+</script>
+{% endblock %}

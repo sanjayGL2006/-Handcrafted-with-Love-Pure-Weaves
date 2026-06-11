@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pure Weaves – Create Account</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --maroon:#7B1A2E; --gold:#C9A84C; --cream:#FDF6EC; --deep:#2A0A12;
+  --soft:#F5E6D3; --text:#3A1A22; --muted:#8A6A70; --white:#FFFFFF;
+  --border:#E8CFA8; --green:#25D366; --red:#C0392B;
+  --shadow:rgba(123,26,46,0.18); --radius:14px; --transition:0.22s ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Lato',sans-serif; min-height:100vh;
+  background:linear-gradient(135deg,var(--deep) 0%,var(--maroon) 50%,#A0263C 100%);
+  display:flex; align-items:center; justify-content:center;
+  padding:1.5rem; position:relative; overflow:hidden;
+}
+body::before{
+  content:''; position:fixed; inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23C9A84C' fill-opacity='0.06'%3E%3Cpath d='M50 50v-8h-4v8h-8v4h8v8h4v-8h8v-4h-8zm0-42V0h-4v8h-8v4h8v8h4V12h8V8h-8zM8 50v-8H4v8H0v4h4v8h4v-8h8v-4H8zM8 8V0H4v8H0v4h4v8h4V12h8V8H8z'/%3E%3C/g%3E%3C/svg%3E");
+  pointer-events:none; z-index:0;
+}
+.deco-circle{position:fixed;border-radius:50%;background:rgba(201,168,76,0.08);pointer-events:none;z-index:0;}
+.deco-1{width:300px;height:300px;top:-100px;right:-80px;}
+.deco-2{width:200px;height:200px;bottom:-60px;left:-60px;}
+.login-card{background:var(--white); border-radius:var(--radius);width:100%; max-width:440px;box-shadow:0 24px 70px rgba(0,0,0,0.35);position:relative; z-index:1; overflow:hidden;animation:slideUp 0.4s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.card-header{background:linear-gradient(135deg,var(--deep),var(--maroon));padding:2rem 2rem 1.5rem; text-align:center;position:relative; overflow:hidden;}
+.card-header::after{content:''; position:absolute; bottom:-1px; left:0; right:0; height:20px; background:var(--white); border-radius:50% 50% 0 0/20px 20px 0 0;}
+.brand-ornament{font-size:11px;letter-spacing:3px;color:rgba(201,168,76,0.8);text-transform:uppercase;margin-bottom:0.4rem;}
+.brand-name{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:var(--white);letter-spacing:1px;}
+.brand-name span{color:var(--gold);}
+.brand-sub{font-size:12px;color:rgba(255,255,255,0.65);margin-top:4px;font-weight:300;}
+.gold-line{width:50px;height:1.5px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:10px auto 0;}
+.card-body{padding:1.5rem 2rem 2rem;}
+.form-group{margin-bottom:1rem;}
+.form-label{display:block;font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.3px;}
+.input-wrap{position:relative;display:flex;align-items:center;}
+.form-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;color:var(--text);background:var(--cream);font-family:'Lato',sans-serif;transition:var(--transition);outline:none;}
+.form-input:focus{border-color:var(--maroon);background:var(--white);box-shadow:0 0 0 3px rgba(123,26,46,0.08);}
+.btn{width:100%;padding:13px;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Lato',sans-serif;transition:var(--transition);letter-spacing:0.3px;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden;}
+.btn-maroon{background:linear-gradient(135deg,var(--maroon),#9B2235);color:var(--white);box-shadow:0 4px 15px rgba(123,26,46,0.3);}
+.btn-maroon:hover{box-shadow:0 6px 20px rgba(123,26,46,0.4);}
+.btn-maroon:disabled{background:#ccc;color:#999;box-shadow:none;cursor:not-allowed;}
+.btn-outline{background:transparent;color:var(--maroon);border:1.5px solid var(--maroon);margin-top:8px;}
+.btn-outline:hover{background:var(--soft);}
+.msg-box{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:1rem;display:none;align-items:center;gap:8px;line-height:1.4;}
+.msg-box.show{display:flex;}
+.msg-error{background:#FDEDEC;color:var(--red);border:1px solid #F5B7B1;}
+.msg-success{background:#EAFAF1;color:#1E8449;border:1px solid #A9DFBF;}
+.success-screen{text-align:center;padding:1rem 0;display:none;}
+.success-screen.show{display:block;}
+.success-icon{font-size:56px;margin-bottom:1rem;animation:bounce 0.5s ease;}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.success-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--maroon);margin-bottom:0.5rem;}
+.success-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem;}
+.terms{font-size:11px;color:var(--muted);text-align:center;margin-top:1rem;line-height:1.6;}
+.terms a{color:var(--maroon);text-decoration:underline;cursor:pointer;}
+@media(max-width:480px){.card-body{padding:1.25rem 1.5rem 1.5rem;}.card-header{padding:1.5rem 1.5rem 1.25rem;}}
+</style>
+</head>
+<body>
+<script>
+  const protocol = window.location.protocol || '';
+  const isFilePage = protocol === 'file:';
+  const isChromeErrorPage = protocol.indexOf('chrome-error') === 0;
+  const API_BASE = isFilePage ? 'http://127.0.0.1:5000' : window.location.origin;
+  if (isFilePage && !isChromeErrorPage) {
+    try {
+      const filename = (window.location.pathname || '').split('/').pop() || 'register.html';
+      window.location.href = API_BASE + '/' + filename;
+    } catch (e) {
+      console.warn('Redirect to local server failed', e);
+    }
+  }
+</script>
+<div class="deco-circle deco-1"></div>
+<div class="deco-circle deco-2"></div>
+<div class="login-card">
+  <div class="card-header">
+    <div class="brand-ornament">✦ Create Your Account ✦</div>
+    <div class="brand-name">Pure <span>Weaves</span></div>
+    <div class="brand-sub">Secure registration for saree kuchu orders</div>
+    <div class="gold-line"></div>
+  </div>
+  <div class="card-body">
+    <div class="msg-box msg-error" id="registerError"><span>⚠️</span><span id="registerErrorText"></span></div>
+    <div class="form-group">
+      <label class="form-label" for="regName">Username</label>
+      <div class="input-wrap"><input id="regName" class="form-input" placeholder="Your username" /></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="regEmail">Gmail</label>
+      <div class="input-wrap"><input id="regEmail" type="email" class="form-input" placeholder="you@gmail.com" /></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="regPassword">Password</label>
+      <div class="input-wrap"><input id="regPassword" type="password" class="form-input" placeholder="Choose a secure password" /></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="regConfirm">Confirm Password</label>
+      <div class="input-wrap"><input id="regConfirm" type="password" class="form-input" placeholder="Repeat your password" /></div>
+    </div>
+    <button class="btn btn-maroon" id="registerBtn" onclick="submitRegister()">Create account</button>
+    <button class="btn btn-outline" style="margin-top:10px;" onclick="window.location.href='login.html'">Already have an account? Login</button>
+    <div class="terms">
+      By signing up, you agree to our <a onclick="alert('Your data is stored securely and used only for your orders.')">Privacy Policy</a>.
+    </div>
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">Account Created!</div>
+      <div class="success-sub" id="successMsg">Redirecting to catalog...</div>
+      <div class="redirect-bar"><div class="redirect-fill" id="redirectFill"></div></div>
+    </div>
+  </div>
+</div>
+<script>
+function setBtnState(id, disabled, text) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.disabled = disabled;
+  if (text) btn.textContent = text;
+}
+function showError(msg) {
+  const box = document.getElementById('registerError');
+  const txt = document.getElementById('registerErrorText');
+  txt.textContent = msg || 'Registration failed';
+  box.classList.add('show');
+}
+function clearError() {
+  document.getElementById('registerError').classList.remove('show');
+}
+function showSuccess(msg) {
+  document.getElementById('registerError').classList.remove('show');
+  document.getElementById('successMsg').textContent = msg;
+  document.getElementById('successScreen').classList.add('show');
+  setTimeout(() => { document.getElementById('redirectFill').style.width = '100%'; }, 100);
+  setTimeout(() => {
+    window.location.href = 'index.html';
+  }, 2600);
+}
+function submitRegister() {
+  clearError();
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const confirm = document.getElementById('regConfirm').value;
+  if (!name || !email || !password || !confirm) return showError('All fields are required.');
+  if (password !== confirm) return showError('Passwords do not match.');
+  if (password.length < 8) return showError('Choose a password with at least 8 characters.');
+  setBtnState('registerBtn', true, 'Creating...');
+  fetch(API_BASE + '/api/auth/register', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ name, email, password, confirm_password: confirm })
+  }).then(r => r.json().then(data => ({ ok:r.ok, data })))
+    .then(resp => {
+      setBtnState('registerBtn', false, 'Create account');
+      if (resp.ok) {
+        try {
+          localStorage.removeItem('explicit_logout');
+          let state = {};
+          state.user = resp.data.user;
+          if (resp.data.token) state.token = resp.data.token;
+          localStorage.setItem('pureweaves_state', JSON.stringify(state));
+        } catch(e) {}
+        showSuccess('Your account is ready — redirecting now.');
+      } else {
+        showError(resp.data && resp.data.error ? resp.data.error : 'Unable to register.');
+      }
+    }).catch(() => {
+      setBtnState('registerBtn', false, 'Create account');
+      showError('Network error. Please try again.');
+    });
+}
+</script>
+</body>
+</html>

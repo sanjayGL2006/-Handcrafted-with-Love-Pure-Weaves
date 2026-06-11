@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Register - Pure Weaves{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:center;align-items:center;padding:4rem 1.5rem;">
+  <div style="background:var(--white);border-radius:var(--radius);padding:2rem;width:100%;max-width:400px;box-shadow:0 10px 30px var(--shadow);">
+    <h2 style="font-family:'Playfair Display',serif;color:var(--maroon);text-align:center;margin-bottom:1.5rem;">Create Account</h2>
+    <form method="POST" action="{{ url_for('auth.register') }}">
+      <div style="margin-bottom:1rem;">
+        <label style="display:block;font-size:13px;font-weight:700;margin-bottom:5px;color:var(--text);">Username</label>
+        <input type="text" name="username" class="search-input" style="width:100%;" required>
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="display:block;font-size:13px;font-weight:700;margin-bottom:5px;color:var(--text);">Gmail Address</label>
+        <input type="email" name="email" class="search-input" style="width:100%;" placeholder="you@gmail.com" required>
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="display:block;font-size:13px;font-weight:700;margin-bottom:5px;color:var(--text);">Password</label>
+        <input type="password" name="password" class="search-input" style="width:100%;" required>
+      </div>
+      <div style="margin-bottom:1.5rem;">
+        <label style="display:block;font-size:13px;font-weight:700;margin-bottom:5px;color:var(--text);">Confirm Password</label>
+        <input type="password" name="confirm_password" class="search-input" style="width:100%;" required>
+      </div>
+      <button type="submit" class="btn-primary" style="width:100%;">Register</button>
+    </form>
+    <div style="text-align:center;margin-top:1.5rem;font-size:13px;">
+      Already have an account? <a href="{{ url_for('auth.login') }}" style="color:var(--gold);font-weight:700;">Login</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

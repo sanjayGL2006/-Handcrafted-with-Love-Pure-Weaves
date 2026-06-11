@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Shopping Cart - Pure Weaves{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Your Shopping Cart</h1>
+</div>
+<div class="cart-layout">
+  <div class="cart-items-list">
+    {% for item in cart_items %}
+    <div class="cart-card" id="cart_item_{{ item.id }}">
+      <img src="{{ item.product.image_path }}" class="cart-img" alt="{{ item.product.name }}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+      <div class="cart-info">
+        <div class="cart-name">{{ item.product.name }}</div>
+        <div class="cart-price">₹{{ "%.0f"|format(item.product.price) }}</div>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="updateCartItem(Number('{{ item.id }}'), Number('{{ item.quantity - 1 }}'))">-</button>
+          <span class="qty-num">{{ item.quantity }}</span>
+          <button class="qty-btn" onclick="updateCartItem(Number('{{ item.id }}'), Number('{{ item.quantity + 1 }}'))">+</button>
+        </div>
+      </div>
+      <button class="remove-btn" onclick="updateCartItem(Number('{{ item.id }}'), 0)">🗑️</button>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:3rem;background:var(--white);border-radius:var(--radius);border:1px solid var(--border);color:var(--muted);">
+      Your cart is empty.
+      <br><br>
+      <a href="{{ url_for('main.catalog') }}" class="btn-primary" style="display:inline-block;">Browse Catalog</a>
+    </div>
+    {% endfor %}
+  </div>
+  
+  <div class="cart-summary">
+    <div class="summary-title">Order Summary</div>
+    <div class="summary-row">
+      <span>Subtotal</span>
+      <span id="subtotal">₹{{ "%.0f"|format(subtotal) }}</span>
+    </div>
+    <div class="summary-row" style="color:var(--green);">
+      <span>Shipping</span>
+      <span>Calculated at checkout</span>
+    </div>
+    <div class="summary-total">
+      <span>Total</span>
+      <span id="total">₹{{ "%.0f"|format(subtotal) }}</span>
+    </div>
+    {% if cart_items %}
+    <button class="btn-primary" style="width:100%;margin-top:1rem;" onclick="checkout()">Proceed to Checkout</button>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function updateCartItem(itemId, newQty) {
+  fetch('/api/cart/update', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ item_id: itemId, quantity: newQty })
+  })
+  .then(res => res.json())
+  .then(data => {
+    window.location.reload();
+  });
+}
+
+function checkout() {
+  fetch('/checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.order_id) {
+      showToast('✅ Order Placed Successfully!');
+      setTimeout(() => { window.location.href = '/profile'; }, 2000);
+    } else {
+      showToast('⚠️ ' + data.error);
+    }
+  });
+}
+</script>
+{% endblock %}

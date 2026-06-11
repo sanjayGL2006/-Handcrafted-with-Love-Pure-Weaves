@@ -400,6 +400,58 @@ def create_app(config_class=Config):
 with app.app_context():
     db.create_all()
 
+---
+
+## 🔧 Recent Fixes (2026-06-11)
+
+Summary of changes made to resolve a 500/404 login issue and improve deployment:
+
+- Cleaned and replaced the root `login.html` (removed duplicate/invalid markup, added accessibility attributes, ensured input `name` attributes and proper form `action`).
+- Split inline styles and scripts into `/assets/login.css` and `/assets/login.js` for better caching, maintainability and to avoid duplicated code.
+- Hardened frontend JS: added `safeFetch` with timeout, null-safety checks, improved Firebase init handling and fallbacks, and robust redirect logic.
+- Added a `csrf_token` hidden input placeholder in the login form — populate this server-side when enabling CSRF protection.
+- Added a `/login.html` alias in the Flask auth blueprint so static requests to `/login.html` do not 404 when templates are rendered from Flask.
+- Updated `vercel.json` to support static builds and optional Python API routes; added environment variable placeholders and security headers.
+- Fixed broken nesting and duplicate DOCTYPE/head/body issues that caused parsing errors in some environments.
+
+### How to verify locally
+
+1. Start the app locally:
+
+```bash
+python run.py
+```
+
+2. Visit the login page:
+
+```
+http://127.0.0.1:5000/login.html
+```
+
+3. Test flows:
+- Google sign-in (requires proper Firebase config in `/env-config.js` or Vercel env vars)
+- Email/password login: POST `/api/auth/login` (JSON) or use the form
+
+4. Check console and server logs for any errors; local server prints traceback on exceptions.
+
+### Vercel deployment notes
+
+- Set the following Environment Variables in the Vercel project settings (do NOT commit them to the repo):
+  - `DATABASE_URL` (use Postgres/MySQL for production)
+  - `SECRET_KEY`
+  - `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, etc. (if using Firebase)
+  - `ADMIN_PANEL_SECRET` (optional)
+
+- Vercel's filesystem is ephemeral: do not rely on SQLite for production. Use a managed DB and set `DATABASE_URL`.
+
+---
+
+If you want, I can now:
+- add the same asset separation and fixes to `register.html` and `index.html`,
+- create a git branch and open a PR with these changes, or
+- deploy to a Vercel preview (you'll need to add env vars in your Vercel dashboard).
+
+
 # f-strings
 invoice_number = f"INV{datetime.now().strftime('%Y%m%d%H%M%S')}{random.randint(10,99)}"
 

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Pure Weaves - Home{% endblock %}
+{% block content %}
+<!-- ── HEADER ──────────────────────────────────────────────── -->
+<header class="hero">
+  <div class="hero-tag">Handcrafted With Love</div>
+  <h1>Pure <span>Weaves</span></h1>
+  <div class="gold-divider"></div>
+  <div class="hero-sub">Exquisite handcrafted saree kuchu, bridal bunches, and matching jewelry. Custom made in Shivamogga.</div>
+  <div class="hero-btns">
+    <a href="{{ url_for('main.catalog') }}" class="btn-primary">View Collection</a>
+    <a href="#aboutSection" class="btn-outline">Our Story</a>
+  </div>
+</header>
+
+<!-- ── FEATURES STRIP ──────────────────────────────────────── -->
+<div class="features">
+  <div class="feature-item"><span class="feature-icon">✨</span> Premium Silk Threads</div>
+  <div class="feature-item"><span class="feature-icon">🎨</span> Custom Colors</div>
+  <div class="feature-item"><span class="feature-icon">📦</span> Delivery Across India</div>
+  <div class="feature-item"><span class="feature-icon">💎</span> Authentic Handwork</div>
+</div>
+
+<!-- ── FEATURED PRODUCTS ──────────────────────────────────────── -->
+<div class="filter-section" style="margin-top:2rem;">
+  <h2 style="text-align:center;">Featured Designs</h2>
+  <div class="gold-divider" style="margin-bottom:1.5rem;"></div>
+</div>
+
+<div class="grid" id="productGrid">
+  {% for product in featured_products %}
+  <div class="card">
+    <div class="card-img-wrap">
+      {% if product.category_rel.name == 'Bridal Collection' %}
+      <div class="cat-badge bridal-badge">{{ product.category_rel.name }}</div>
+      {% else %}
+      <div class="cat-badge">{{ product.category_rel.name }}</div>
+      {% endif %}
+      
+      {% if current_user.is_authenticated %}
+        <button class="wishlist-btn {% if product.id in wishlist %}active{% endif %}" onclick="toggleWishlist(Number('{{ product.id }}'))" id="wish_{{ product.id }}">
+          {% if product.id in wishlist %}❤️{% else %}🤍{% endif %}
+        </button>
+      {% endif %}
+      
+      <img src="{{ product.image_path }}" alt="{{ product.name }}" loading="lazy" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
+    </div>
+    <div class="card-body">
+      <div class="card-name">{{ product.name }}</div>
+      <div class="card-desc">{{ product.description[:60] }}...</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="card-price">₹{{ "%.0f"|format(product.price) }}</div>
+        <div class="card-rating">
+          {% for i in range(5) %}
+            {% if i < product.rating|int %}⭐{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-cart" onclick="addToCart(Number('{{ product.id }}'))">Add to Cart</button>
+        <button class="btn-wa" onclick="window.open('https://wa.me/918123981877?text=Hi,%20I%20am%20interested%20in%20{{ product.name }}')">💬</button>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- ── ABOUT & TRUST ──────────────────────────────────────── -->
+<section id="aboutSection" style="padding:4rem 1.5rem;background:var(--white);text-align:center;">
+  <div style="max-width:800px;margin:0 auto;">
+    <div class="hero-tag" style="color:var(--maroon);">Our Story</div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:32px;color:var(--deep);margin-bottom:1rem;">Handcrafted in Shivamogga</h2>
+    <p style="color:var(--muted);line-height:1.8;margin-bottom:2rem;">
+      Every knot is tied with precision, every bead selected with care. Pure Weaves is a labor of love by artisans dedicated to preserving the traditional art of Saree Kuchu. We bring elegance to your ethnic wear with our premium, long-lasting handwork.
+    </p>
+  </div>
+</section>
+
+{% endblock %}

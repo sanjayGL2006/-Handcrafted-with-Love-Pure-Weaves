@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}My Profile - Pure Weaves{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>My Account</h1>
+</div>
+<div class="account-layout">
+  <div class="account-sidebar">
+    <div class="account-avatar">{{ user.username[0] | upper }}</div>
+    <div class="account-user-name">{{ user.username }}</div>
+    <div class="account-mobile">{{ user.email }}</div>
+    
+    <div class="account-menu">
+      <div class="account-menu-item active">📦 Order History</div>
+      <a href="{{ url_for('main.wishlist') }}" class="account-menu-item" style="display:block;">❤️ Wishlist ({{ wishlist_count }})</a>
+      <a href="{{ url_for('auth.logout') }}" class="account-menu-item" style="color:var(--maroon);display:block;">🚪 Logout</a>
+    </div>
+  </div>
+  
+  <div class="account-content">
+    <h2 style="font-family:'Playfair Display',serif;color:var(--deep);margin-bottom:1.5rem;">Update Profile</h2>
+    <form method="POST" action="{{ url_for('main.profile') }}" style="margin-bottom:2rem;display:flex;gap:10px;">
+      <input type="text" name="username" class="search-input" value="{{ user.username }}" required>
+      <button type="submit" class="btn-primary" style="padding:9px 18px;">Update</button>
+    </form>
+    
+    <h2 style="font-family:'Playfair Display',serif;color:var(--deep);margin-bottom:1rem;">Order History</h2>
+    <div class="orders-list">
+      {% for order in orders %}
+      <div class="order-card">
+        <div class="order-header">
+          <div class="order-id">Order #{{ order.id }}</div>
+          <div class="order-status">{{ order.status | title }}</div>
+        </div>
+        <div style="font-size:13px;color:var(--text);margin-bottom:8px;">
+          {% for item in order.items %}
+            • {{ item.product.name }} (x{{ item.quantity }})<br>
+          {% endfor %}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="order-date">{{ order.created_at.strftime('%d %b %Y') }}</div>
+          <div class="order-total">₹{{ "%.0f"|format(order.total_amount) }}</div>
+        </div>
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:2rem;color:var(--muted);">You haven't placed any orders yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

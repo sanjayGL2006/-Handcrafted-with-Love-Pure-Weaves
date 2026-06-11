@@ -1,0 +1,36 @@
+{% extends "admin/base.html" %}
+{% block header %}Manage Users{% endblock %}
+{% block content %}
+<div class="admin-card">
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Gmail</th>
+        <th>Role</th>
+        <th>Joined</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td>{{ user.id }}</td>
+        <td>{{ user.username }}</td>
+        <td>{{ user.email }}</td>
+        <td>
+          {% if user.is_admin %}
+          <span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:4px;font-size:12px;">Admin</span>
+          {% else %}
+          <span style="background:#e3f2fd;color:#1565c0;padding:3px 8px;border-radius:4px;font-size:12px;">User</span>
+          {% endif %}
+        </td>
+        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" style="text-align:center;color:#888;">No users found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

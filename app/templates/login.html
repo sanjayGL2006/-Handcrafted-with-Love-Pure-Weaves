@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Login - Pure Weaves{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:center;align-items:center;padding:4rem 1.5rem;">
+  <div style="background:var(--white);border-radius:var(--radius);padding:2rem;width:100%;max-width:400px;box-shadow:0 10px 30px var(--shadow);">
+    <h2 style="font-family:'Playfair Display',serif;color:var(--maroon);text-align:center;margin-bottom:1.5rem;">Login</h2>
+    <form method="POST" action="{{ url_for('auth.login') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div style="margin-bottom:1rem;">
+        <label style="display:block;font-size:13px;font-weight:700;margin-bottom:5px;color:var(--text);">Gmail or Username</label>
+        <input type="text" name="login" class="search-input" style="width:100%;" required>
+      </div>
+      <div style="margin-bottom:1.5rem;">
+        <label style="display:block;font-size:13px;font-weight:700;margin-bottom:5px;color:var(--text);">Password</label>
+        <input type="password" name="password" class="search-input" style="width:100%;" required>
+      </div>
+      <button type="submit" class="btn-primary" style="width:100%;">Login</button>
+    </form>
+    <div style="text-align:center;margin-top:1rem;font-size:13px;">
+      <a href="{{ url_for('auth.forgot_password') }}" style="color:var(--maroon);">Forgot Password?</a><br><br>
+      Don't have an account? <a href="{{ url_for('auth.register') }}" style="color:var(--gold);font-weight:700;">Register</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

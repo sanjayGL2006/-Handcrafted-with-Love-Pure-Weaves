@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /login.html
+Disallow: /admin.html
+Sitemap: https://pure-weaves.netlify.app/sitemap.xml

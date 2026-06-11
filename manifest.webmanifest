@@ -1,0 +1,18 @@
+{
+  "name": "Pure Weaves",
+  "short_name": "Pure Weaves",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#7B1A2E",
+  "theme_color": "#7B1A2E",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

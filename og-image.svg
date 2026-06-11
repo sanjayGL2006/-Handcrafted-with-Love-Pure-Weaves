@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#7B1A2E" />
+  <rect x="60" y="60" width="1080" height="510" rx="40" fill="#FDF6EC" />
+  <text x="120" y="220" font-family="'Playfair Display',serif" font-size="72" fill="#7B1A2E" font-weight="700">Pure Weaves</text>
+  <text x="120" y="320" font-family="'Lato',sans-serif" font-size="40" fill="#3A1A22">Handcrafted Saree Kuchu & Bunches</text>
+  <text x="120" y="390" font-family="'Lato',sans-serif" font-size="28" fill="#8A6A70">Shivamogga, Karnataka · Custom orders via WhatsApp</text>
+  <rect x="120" y="450" width="180" height="20" rx="10" fill="#C9A84C" />
+  <text x="120" y="490" font-family="'Lato',sans-serif" font-size="24" fill="#7B1A2E">Order via WhatsApp</text>
+</svg>

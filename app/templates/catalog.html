@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Catalog - Pure Weaves{% endblock %}
+{% block content %}
+<div class="filter-section">
+  <h2>Our Catalog</h2>
+  <form method="GET" action="{{ url_for('main.catalog') }}" class="search-row">
+    <input type="text" name="search" class="search-input" placeholder="Search designs, colors..." value="{{ request.args.get('search', '') }}">
+    <select name="category" class="search-input" style="width:auto;flex:none;">
+      <option value="All">All Categories</option>
+      {% for cat in categories %}
+      <option value="{{ cat.name }}" {% if request.args.get('category') == cat.name %}selected{% endif %}>{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+    <select name="sort" class="search-input" style="width:auto;flex:none;">
+      <option value="default" {% if request.args.get('sort') == 'default' %}selected{% endif %}>Sort By</option>
+      <option value="price_low" {% if request.args.get('sort') == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+      <option value="price_high" {% if request.args.get('sort') == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+      <option value="name_az" {% if request.args.get('sort') == 'name_az' %}selected{% endif %}>Name: A to Z</option>
+    </select>
+    <button type="submit" class="btn-primary" style="padding:9px 18px;">Filter</button>
+  </form>
+  <div class="count-bar">{{ products|length }} designs available</div>
+</div>
+
+<div class="grid" id="productGrid">
+  {% for product in products %}
+  <div class="card">
+    <div class="card-img-wrap">
+      {% if product.category_rel.name == 'Bridal Collection' %}
+      <div class="cat-badge bridal-badge">{{ product.category_rel.name }}</div>
+      {% else %}
+      <div class="cat-badge">{{ product.category_rel.name }}</div>
+      {% endif %}
+      
+      {% if current_user.is_authenticated %}
+        <button class="wishlist-btn {% if product.id in wishlist %}active{% endif %}" onclick="toggleWishlist(Number('{{ product.id }}'))" id="wish_{{ product.id }}">
+          {% if product.id in wishlist %}❤️{% else %}🤍{% endif %}
+        </button>
+      {% endif %}
+      
+      <img src="{{ product.image_path }}" alt="{{ product.name }}" loading="lazy" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
+    </div>
+    <div class="card-body">
+      <div class="card-name">{{ product.name }}</div>
+      <div class="card-desc">{{ product.description[:60] }}...</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="card-price">₹{{ "%.0f"|format(product.price) }}</div>
+        <div class="card-rating">
+          {% for i in range(5) %}
+            {% if i < product.rating|int %}⭐{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-cart" onclick="addToCart(Number('{{ product.id }}'))">Add to Cart</button>
+        <button class="btn-wa" onclick="window.open('https://wa.me/918123981877?text=Hi,%20I%20am%20interested%20in%20{{ product.name }}')">💬</button>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted);">
+    No products found matching your criteria.
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

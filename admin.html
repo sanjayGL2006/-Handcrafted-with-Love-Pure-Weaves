@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Pure Weaves – Admin Dashboard</title>
+<!-- Bootstrap 5, Font Awesome, Google Fonts, and Chart.js -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+  --maroon:#7B1A2E; --gold:#C9A84C; --deep:#2A0A12; --cream:#FDF6EC;
+  --soft:#F5E6D3; --text:#3A1A22; --muted:#8A6A70; --white:#FFFFFF;
+  --border:#E8CFA8; --green:#27AE60; --red:#E74C3C; --blue:#2980B9;
+  --orange:#E67E22; --shadow:rgba(123,26,46,0.12);
+  --sidebar-w:240px; --topbar-h:58px; --radius:10px;
+  --bg:#F0EBE3; --panel-bg:#FFFFFF; --input-bg:#FDF6EC;
+  --nav-bg:#2A0A12; --nav-text:rgba(255,255,255,0.65);
+}
+.dark-mode {
+  --bg:#1A1A2E; --panel-bg:#16213E; --input-bg:#0F3460;
+  --cream:#1A1A2E; --soft:#16213E; --text:#E0E0E0; --muted:#A0A0B0;
+  --border:#2A3A5A; --white:#16213E; --shadow:rgba(0,0,0,0.4);
+  --nav-bg:#0D0D1A; --nav-text:rgba(255,255,255,0.75);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Lato',sans-serif; background:var(--bg); color:var(--text); display:flex; min-height:100vh; transition:background 0.3s,color 0.3s; }
+
+/* ── LOGIN SCREEN ─────────────────────────────────────── */
+#loginScreen {
+  position:fixed; inset:0; background:linear-gradient(135deg,var(--deep),var(--maroon));
+  display:flex; align-items:center; justify-content:center; z-index:9999; padding:1rem;
+}
+.login-card { background:#fff; border-radius:14px; padding:2.5rem 2rem; width:100%; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,0.4); }
+.login-brand { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:var(--deep); text-align:center; margin-bottom:4px; }
+.login-brand span { color:var(--maroon); }
+.login-sub { text-align:center; font-size:12px; color:#8A6A70; margin-bottom:1.5rem; }
+.login-form-group { margin-bottom:1rem; }
+.login-label { display:block; font-size:12px; font-weight:700; color:#3A1A22; text-transform:uppercase; margin-bottom:5px; }
+.login-input { width:100%; padding:11px 14px; border:1.5px solid #E8CFA8; border-radius:8px; font-size:14px; background:#FDF6EC; outline:none; font-family:inherit; }
+.login-input:focus { border-color:var(--maroon); background:#fff; }
+.login-btn { width:100%; padding:12px; background:var(--maroon); color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:4px; }
+.login-btn:hover { background:var(--deep); }
+.login-error { font-size:12px; color:var(--red); text-align:center; margin-top:8px; min-height:18px; }
+.login-hint { font-size:11px; color:#8A6A70; text-align:center; margin-top:12px; padding:8px; background:#FDF6EC; border-radius:6px; }
+
+/* ── SIDEBAR ──────────────────────────────────────────── */
+.sidebar { width:var(--sidebar-w); background:var(--nav-bg); min-height:100vh; position:fixed; top:0; left:0; display:flex; flex-direction:column; z-index:100; transition:transform 0.3s; }
+.sidebar-brand { padding:1.25rem 1.5rem; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:10px; }
+.brand-icon { font-size:22px; }
+.brand-text { font-family:'Playfair Display',serif; font-size:16px; color:#fff; }
+.brand-text span { color:var(--gold); }
+.brand-sub { font-size:10px; color:rgba(255,255,255,0.35); letter-spacing:1px; text-transform:uppercase; }
+.sidebar-section { padding:0.75rem 0; border-bottom:1px solid rgba(255,255,255,0.06); }
+.sidebar-label { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,0.25); padding:0 1.25rem 0.4rem; }
+.nav-item { display:flex; align-items:center; gap:10px; padding:9px 1.25rem; font-size:13px; color:var(--nav-text); cursor:pointer; transition:all 0.18s; border-left:3px solid transparent; }
+.nav-item:hover { background:rgba(255,255,255,0.05); color:#fff; }
+.nav-item.active { background:rgba(201,168,76,0.12); color:var(--gold); border-left-color:var(--gold); }
+.nav-icon { font-size:16px; width:20px; text-align:center; }
+.nav-badge { margin-left:auto; background:var(--red); color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:99px; }
+.sidebar-footer { margin-top:auto; padding:1rem 1.25rem; border-top:1px solid rgba(255,255,255,0.08); }
+.admin-profile { display:flex; align-items:center; gap:10px; }
+.admin-avatar { width:34px; height:34px; border-radius:50%; background:var(--maroon); display:flex; align-items:center; justify-content:center; font-size:15px; color:#fff; flex-shrink:0; }
+.admin-name { font-size:12px; font-weight:700; color:#fff; }
+.admin-role { font-size:10px; color:rgba(255,255,255,0.35); }
+.logout-btn { background:none; border:none; color:rgba(255,255,255,0.35); font-size:16px; cursor:pointer; padding:4px; margin-left:auto; transition:color 0.18s; }
+.logout-btn:hover { color:var(--red); }
+
+/* ── MAIN ─────────────────────────────────────────────── */
+.main-wrap { margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; min-height:100vh; }
+.topbar { height:var(--topbar-h); background:var(--panel-bg); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 1.5rem; position:sticky; top:0; z-index:50; box-shadow:0 1px 4px var(--shadow); }
+.topbar-left { display:flex; align-items:center; gap:12px; }
+.page-title { font-family:'Playfair Display',serif; font-size:17px; color:var(--text); font-weight:600; }
+.breadcrumb { font-size:11px; color:var(--muted); }
+.topbar-right { display:flex; align-items:center; gap:10px; }
+.topbar-search { display:flex; align-items:center; gap:6px; background:var(--soft); border:1px solid var(--border); border-radius:7px; padding:6px 11px; }
+.topbar-search input { border:none; background:none; font-size:13px; color:var(--text); outline:none; width:160px; font-family:inherit; }
+.topbar-btn { width:32px; height:32px; border-radius:7px; border:none; background:var(--soft); color:var(--muted); font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.18s; position:relative; }
+.topbar-btn:hover { background:var(--border); }
+.notif-dot { position:absolute; top:4px; right:4px; width:7px; height:7px; border-radius:50%; background:var(--red); border:2px solid var(--panel-bg); }
+.topbar-date { font-size:11px; color:var(--muted); }
+.hamburger { display:none; background:none; border:none; font-size:22px; color:var(--text); cursor:pointer; }
+
+/* ── CONTENT ──────────────────────────────────────────── */
+.content { padding:1.5rem; flex:1; }
+.page { display:none; animation:fadeIn 0.25s ease; }
+.page.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
+
+/* ── STAT CARDS ───────────────────────────────────────── */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+.stat-card { background:var(--panel-bg); border-radius:var(--radius); padding:1.1rem; border:1px solid var(--border); display:flex; align-items:center; gap:12px; box-shadow:0 1px 4px var(--shadow); transition:transform 0.2s; }
+.stat-card:hover { transform:translateY(-2px); }
+.stat-icon { width:46px; height:46px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.icon-m { background:#FAE8EC; } .icon-g { background:#FEF9EC; } .icon-gr { background:#E9F7EF; } .icon-b { background:#EBF5FB; } .icon-o { background:#FEF5E7; }
+.stat-num { font-family:'Playfair Display',serif; font-size:24px; font-weight:700; color:var(--text); line-height:1; }
+.stat-label { font-size:11px; color:var(--muted); margin-top:2px; }
+.stat-change { font-size:11px; margin-top:4px; font-weight:700; }
+.up { color:var(--green); } .down { color:var(--red); }
+
+/* ── PANELS ───────────────────────────────────────────── */
+.panel { background:var(--panel-bg); border-radius:var(--radius); border:1px solid var(--border); box-shadow:0 1px 4px var(--shadow); margin-bottom:1.5rem; overflow:hidden; }
+.panel-header { padding:0.9rem 1.25rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.panel-title { font-family:'Playfair Display',serif; font-size:15px; color:var(--text); font-weight:600; display:flex; align-items:center; gap:7px; }
+.panel-body { padding:1.25rem; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; }
+
+/* ── FORMS ────────────────────────────────────────────── */
+.form-group { margin-bottom:0.9rem; }
+.form-label { display:block; font-size:11px; font-weight:700; color:var(--text); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px; }
+.form-input { width:100%; padding:8px 11px; border:1.5px solid var(--border); border-radius:7px; font-size:13px; color:var(--text); background:var(--input-bg); transition:border-color 0.18s; outline:none; font-family:inherit; }
+.form-input:focus { border-color:var(--maroon); background:var(--white); }
+textarea.form-input { resize:vertical; min-height:70px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.img-preview { width:100%; height:120px; border-radius:7px; object-fit:cover; margin-top:7px; border:1px solid var(--border); display:none; }
+.img-preview.show { display:block; }
+
+/* ── BUTTONS ──────────────────────────────────────────── */
+.btn { display:inline-flex; align-items:center; gap:5px; padding:7px 14px; border:none; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.18s; font-family:inherit; }
+.btn-maroon { background:var(--maroon); color:#fff; }
+.btn-maroon:hover { background:var(--deep); }
+.btn-gold { background:var(--gold); color:var(--deep); }
+.btn-gold:hover { background:#b8942a; }
+.btn-green { background:var(--green); color:#fff; }
+.btn-green:hover { background:#219150; }
+.btn-red { background:var(--red); color:#fff; }
+.btn-red:hover { background:#c0392b; }
+.btn-blue { background:var(--blue); color:#fff; }
+.btn-outline { background:transparent; border:1.5px solid var(--border); color:var(--muted); }
+.btn-outline:hover { border-color:var(--maroon); color:var(--maroon); }
+.btn-sm { padding:4px 9px; font-size:11px; }
+.btn-full { width:100%; justify-content:center; padding:10px; }
+
+/* ── TABLES ───────────────────────────────────────────── */
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:12px; }
+th { background:var(--soft); color:var(--text); font-weight:700; text-align:left; padding:9px 11px; font-size:10px; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
+td { padding:9px 11px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(201,168,76,0.04); }
+.td-img { width:40px; height:40px; object-fit:cover; border-radius:6px; border:1px solid var(--border); }
+.td-name { font-weight:700; }
+
+/* ── BADGES ───────────────────────────────────────────── */
+.badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:99px; font-size:10px; font-weight:700; }
+.badge-green  { background:#E9F7EF; color:#1E8449; }
+.badge-red    { background:#FDEDEC; color:#A93226; }
+.badge-gold   { background:#FEF9EC; color:#7A5200; }
+.badge-blue   { background:#EBF5FB; color:#1A5276; }
+.badge-gray   { background:#F2F3F4; color:#717D7E; }
+.badge-maroon { background:#FAE8EC; color:var(--maroon); }
+
+/* ── TOGGLE ───────────────────────────────────────────── */
+.toggle-wrap { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.toggle-wrap span { font-size:13px; color:var(--text); }
+.toggle { position:relative; width:38px; height:20px; }
+.toggle input { opacity:0; width:0; height:0; }
+.toggle-slider { position:absolute; inset:0; background:#ccc; border-radius:99px; cursor:pointer; transition:0.3s; }
+.toggle-slider::before { content:''; position:absolute; width:14px; height:14px; left:3px; top:3px; background:white; border-radius:50%; transition:0.3s; }
+.toggle input:checked + .toggle-slider { background:var(--green); }
+.toggle input:checked + .toggle-slider::before { transform:translateX(18px); }
+
+/* ── DESIGN CARDS GRID ────────────────────────────────── */
+.designs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; }
+.design-card { background:var(--panel-bg); border:1px solid var(--border); border-radius:9px; overflow:hidden; transition:transform 0.2s,box-shadow 0.2s; }
+.design-card:hover { transform:translateY(-3px); box-shadow:0 6px 18px var(--shadow); }
+.design-card img { width:100%; height:150px; object-fit:cover; display:block; }
+.design-card-no-img { width:100%; height:150px; background:var(--soft); display:flex; align-items:center; justify-content:center; font-size:30px; }
+.design-card-body { padding:10px 12px; }
+.design-card-name { font-size:13px; font-weight:700; color:var(--text); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.design-card-cat { font-size:10px; color:var(--maroon); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+.design-card-price { font-size:14px; font-weight:700; color:var(--maroon); font-family:'Playfair Display',serif; }
+.design-card-actions { display:flex; gap:5px; margin-top:8px; }
+
+/* ── MODAL ────────────────────────────────────────────── */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:200; display:none; align-items:center; justify-content:center; padding:1rem; }
+.modal-overlay.show { display:flex; }
+.modal { background:var(--panel-bg); border-radius:var(--radius); width:100%; max-width:540px; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:slideUp 0.3s ease; overflow:hidden; }
+@keyframes slideUp { from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)} }
+.modal-header { padding:1rem 1.25rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.modal-title { font-family:'Playfair Display',serif; font-size:15px; color:var(--text); font-weight:600; }
+.modal-close { background:none; border:none; font-size:20px; color:var(--muted); cursor:pointer; padding:2px 6px; border-radius:4px; }
+.modal-close:hover { background:var(--soft); }
+.modal-body { padding:1.25rem; max-height:72vh; overflow-y:auto; }
+.modal-footer { padding:0.9rem 1.25rem; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; }
+
+/* ── CHART ────────────────────────────────────────────── */
+.bar-chart { display:flex; align-items:flex-end; gap:8px; height:110px; padding:0 0 4px; }
+.bar-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; height:100%; justify-content:flex-end; }
+.bar { width:100%; background:linear-gradient(180deg,var(--maroon),#A0263C); border-radius:3px 3px 0 0; min-height:3px; }
+.bar-label { font-size:9px; color:var(--muted); }
+.bar-val { font-size:9px; font-weight:700; color:var(--maroon); }
+
+/* ── ACTIVITY ─────────────────────────────────────────── */
+.activity-item { display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+.activity-item:last-child { border-bottom:none; }
+.activity-dot { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+.activity-title { font-size:12px; font-weight:700; color:var(--text); }
+.activity-sub { font-size:11px; color:var(--muted); margin-top:1px; }
+.activity-time { font-size:10px; color:var(--muted); white-space:nowrap; margin-left:auto; }
+
+/* ── MESSAGES ─────────────────────────────────────────── */
+.success-msg { font-size:12px; color:var(--green); margin-top:5px; min-height:16px; }
+.error-msg   { font-size:12px; color:var(--red);   margin-top:5px; min-height:16px; }
+
+/* ── TOAST ────────────────────────────────────────────── */
+.toast { position:fixed; bottom:18px; right:18px; background:var(--deep); color:#fff; padding:11px 16px; border-radius:9px; font-size:13px; z-index:9999; opacity:0; transform:translateY(18px); transition:all 0.3s; pointer-events:none; border-left:4px solid var(--gold); max-width:300px; }
+.toast.show { opacity:1; transform:translateY(0); }
+
+/* ── SETTINGS THEME PREVIEW ───────────────────────────── */
+.theme-options { display:flex; gap:12px; margin-bottom:1rem; }
+.theme-opt { flex:1; border:2px solid var(--border); border-radius:9px; padding:14px; cursor:pointer; text-align:center; transition:all 0.2s; }
+.theme-opt:hover, .theme-opt.selected { border-color:var(--maroon); background:var(--soft); }
+.theme-opt .theme-preview { width:100%; height:50px; border-radius:6px; margin-bottom:8px; }
+.theme-light .theme-preview { background:linear-gradient(135deg,#FDF6EC,#F5E6D3); border:1px solid #E8CFA8; }
+.theme-dark .theme-preview  { background:linear-gradient(135deg,#1A1A2E,#16213E); border:1px solid #2A3A5A; }
+.theme-opt-name { font-size:12px; font-weight:700; color:var(--text); }
+
+/* ── RESPONSIVE ───────────────────────────────────────── */
+@media(max-width:900px) {
+  .sidebar { transform:translateX(-240px); width:240px; }
+  .sidebar.open { transform:translateX(0); }
+  .main-wrap { margin-left:0; }
+  .hamburger { display:flex; }
+  .grid-2,.grid-3,.form-row,.form-row-3 { grid-template-columns:1fr; }
+  .topbar-search { display:none; }
+}
+@media(max-width:600px) {
+  .stats-grid { grid-template-columns:1fr 1fr; }
+  .content { padding:1rem; }
+  .designs-grid { grid-template-columns:1fr 1fr; }
+}
+
+/* Spinner and Accessibility Focus Styles */
+.loading-spinner {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(123, 26, 46, 0.2);
+  border-radius: 50%;
+  border-top-color: var(--maroon);
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+:focus {
+  outline: 2px solid var(--maroon);
+  outline-offset: 2px;
+}
+:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     ADMIN LOGIN SCREEN
+═══════════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">Pure <span>Weaves</span></div>
+    <div class="login-sub">Admin Dashboard · Shivamogga, Karnataka</div>
+    <div class="login-form-group">
+      <label class="login-label" for="loginUser">Username</label>
+      <input class="login-input" id="loginUser" placeholder="Enter admin username" type="text" onkeyup="if(event.key==='Enter')doLogin()" />
+    </div>
+    <div class="login-form-group">
+      <label class="login-label" for="loginPass">Password</label>
+      <input class="login-input" id="loginPass" placeholder="Enter admin password" type="password" onkeyup="if(event.key==='Enter')doLogin()" />
+    </div>
+    <button class="login-btn" onclick="doLogin()">🔐 Login to Dashboard</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-hint">Admin login is for authorized users only. Do not share credentials publicly.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SIDEBAR
+═══════════════════════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">🪡</div>
+    <div>
+      <div class="brand-text">Pure <span>Weaves</span></div>
+      <div class="brand-sub">Admin Panel</div>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Main</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span>Dashboard</div>
+    <div class="nav-item" onclick="showPage('designs',this)"><span class="nav-icon">🪡</span>Products</div>
+    <div class="nav-item" onclick="showPage('customers',this)"><span class="nav-icon">👥</span>Customers</div>
+    <div class="nav-item" onclick="showPage('billing',this)"><span class="nav-icon">🧾</span>Billing</div>
+    <div class="nav-item" onclick="showPage('reviews',this)"><span class="nav-icon">⭐</span>Reviews</div>
+    <div class="nav-item" onclick="showPage('reports',this)"><span class="nav-icon">📋</span>Reports</div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">System</div>
+    <div class="nav-item" onclick="showPage('coupons',this)"><span class="nav-icon">🎟️</span>Coupons</div>
+    <div class="nav-item" onclick="showPage('settings',this)"><span class="nav-icon">⚙️</span>Settings</div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Website</div>
+    <div class="nav-item" onclick="window.open('index.html')"><span class="nav-icon">🌐</span>View Website</div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="admin-profile">
+      <div class="admin-avatar">👤</div>
+      <div><div class="admin-name" id="sideAdminName">Admin</div><div class="admin-role">Administrator</div></div>
+      <button class="logout-btn" onclick="doLogout()" title="Logout">🚪</button>
+    </div>
+  </div>
+</aside>
+<div id="sideOverlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:99;"></div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN
+═══════════════════════════════════════════ -->
+<div class="main-wrap">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <div>
+        <div class="page-title" id="topTitle">Dashboard</div>
+        <div class="breadcrumb">Pure Weaves › <span id="topBread">Overview</span></div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-search">
+        <span>🔍</span>
+        <input type="text" placeholder="Search designs..." oninput="searchDesigns(this.value)" />
+      </div>
+      <button class="topbar-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light">🌙</button>
+      <button class="topbar-btn" onclick="showPage('orders',null)">🔔<div class="notif-dot" id="notifDot" style="display:none"></div></button>
+      <div class="topbar-date" id="topDate"></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══════ DASHBOARD ═══════ -->
+    <div class="page active" id="page-dashboard">
+      <!-- Low Stock Alerts Notification Banner -->
+      <div id="lowStockBanner" class="alert alert-warning d-none" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> <strong>Low Stock Warning!</strong> Some products are running critically low on stock (< 5 items). Please restock them soon.
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon icon-gr"><i class="fas fa-users" style="color: #1E8449;"></i></div>
+          <div class="stat-info">
+            <div class="stat-num" id="statCustomers">0</div>
+            <div class="stat-label">Total Customers</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-b"><i class="fas fa-file-invoice-dollar" style="color: #1A5276;"></i></div>
+          <div class="stat-info">
+            <div class="stat-num" id="statBills">0</div>
+            <div class="stat-label">Bills Generated</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-m"><i class="fas fa-indian-rupee-sign" style="color: var(--maroon);"></i></div>
+          <div class="stat-info">
+            <div class="stat-num" id="statRevenue">₹0.00</div>
+            <div class="stat-label">Total Revenue</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-o"><i class="fas fa-star" style="color: #7A5200;"></i></div>
+          <div class="stat-info">
+            <div class="stat-num" id="statReviews">0</div>
+            <div class="stat-label">Total Reviews</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-g"><i class="fas fa-boxes-stacked" style="color: var(--gold);"></i></div>
+          <div class="stat-info">
+            <div class="stat-num" id="statProducts">0</div>
+            <div class="stat-label">Active Products</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fas fa-chart-line me-2"></i>Revenue Growth & Customer Trends</div>
+          </div>
+          <div class="panel-body">
+            <canvas id="dashboardChart" style="max-height: 250px; width: 100%;"></canvas>
+          </div>
+        </div>
+        
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fas fa-bolt me-2"></i>Quick Actions</div>
+          </div>
+          <div class="panel-body d-flex flex-column gap-2">
+            <button class="btn btn-maroon btn-full py-2" onclick="showPage('billing')"><i class="fas fa-receipt me-2"></i>New Billing / Generate Invoice</button>
+            <button class="btn btn-gold btn-full py-2" onclick="showAddProductModal()"><i class="fas fa-plus me-2"></i>Add New Product</button>
+            <button class="btn btn-green btn-full py-2 text-white" onclick="showPage('reports')"><i class="fas fa-file-excel me-2"></i>Export Business Reports</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><i class="fas fa-triangle-exclamation me-2"></i>Low Stock Monitor</div>
+        </div>
+        <div class="table-wrap">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Product Code</th>
+                <th>Product Name</th>
+                <th>Category</th>
+                <th>Current Stock</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="lowStockTableBody">
+              <tr>
+                <td colspan="5" class="text-center text-muted py-3">No low stock items. All inventory levels are healthy.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ PRODUCTS / DESIGNS ═══════ -->
+    <div class="page" id="page-designs">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🪡 Product Inventory Management</div>
+          <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" id="prodCatFilter" onchange="loadProducts()" style="width: auto;">
+              <option value="All">All Categories</option>
+              <option value="Kuchu">Kuchu</option>
+              <option value="Kuchu Bunches">Kuchu Bunches</option>
+              <option value="Bridal Collection">Bridal Collection</option>
+              <option value="Bangles & Jewelry">Bangles & Jewelry</option>
+              <option value="Jewelry Sets">Jewelry Sets</option>
+              <option value="Blouse Work">Blouse Work</option>
+            </select>
+            <button class="btn btn-maroon btn-sm" onclick="showAddProductModal()"><i class="fas fa-plus me-1"></i>Add Product</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Image</th>
+                <th>Product Name</th>
+                <th>Category</th>
+                <th>Price (INR)</th>
+                <th>Stock Level</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productsTableBody">
+              <tr>
+                <td colspan="8" class="text-center py-4"><span class="loading-spinner"></span> Loading inventory...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ CUSTOMERS ═══════ -->
+    <div class="page" id="page-customers">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">👥 Customer Accounts Directory</div>
+          <button class="btn btn-outline btn-sm" onclick="showAddCustomerModal()"><i class="fas fa-user-plus me-1"></i>New Customer</button>
+        </div>
+        <div class="table-wrap">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Customer Name</th>
+                <th>Mobile Number</th>
+                <th>Email Address</th>
+                <th>Address</th>
+                <th>Reg. Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="customersTableBody">
+              <tr>
+                <td colspan="7" class="text-center py-4"><span class="loading-spinner"></span> Loading accounts...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ BILLING SYSTEM ═══════ -->
+    <div class="page" id="page-billing">
+      <div class="grid-2">
+        <!-- Billing Details Column -->
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">🧾 Invoice Details & Billing</div></div>
+          <div class="panel-body">
+            
+            <!-- Step 1: Customer Info -->
+            <h5 class="border-bottom pb-2 mb-3 text-secondary" style="font-size: 14px; font-weight: 700;">1. CUSTOMER INFORMATION</h5>
+            <div class="form-group mb-3">
+              <label class="form-label">Select Registered Customer (Optional)</label>
+              <select class="form-select" id="billCustSelect" onchange="autoPopulateCustomer()">
+                <option value="">-- Create New / Select Customer --</option>
+              </select>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-md-6 form-group">
+                <label class="form-label" for="billCustName">Customer Name *</label>
+                <input class="form-input" id="billCustName" placeholder="Sanju" />
+              </div>
+              <div class="col-md-6 form-group">
+                <label class="form-label" for="billCustMobile">Mobile Number *</label>
+                <input class="form-input" id="billCustMobile" placeholder="9876543210" />
+              </div>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-md-6 form-group">
+                <label class="form-label" for="billCustEmail">Email Address</label>
+                <input class="form-input" id="billCustEmail" placeholder="customer@mail.com" />
+              </div>
+              <div class="col-md-6 form-group">
+                <label class="form-label" for="billCustAddress">Delivery Address</label>
+                <input class="form-input" id="billCustAddress" placeholder="Shivamogga, Karnataka" />
+              </div>
+            </div>
+
+            <!-- Step 2: Item Selection -->
+            <h5 class="border-bottom pb-2 mb-3 text-secondary" style="font-size: 14px; font-weight: 700; margin-top: 1.5rem;">2. PRODUCT SELECTION</h5>
+            <div class="row g-2 align-items-end mb-4">
+              <div class="col-md-6 form-group">
+                <label class="form-label">Select Saree Kuchu / Bunch Design</label>
+                <select class="form-select" id="billProdSelect" onchange="autoPopulatePrice()">
+                  <option value="">-- Select Product --</option>
+                </select>
+              </div>
+              <div class="col-md-3 form-group">
+                <label class="form-label">Price (INR)</label>
+                <input class="form-input" id="billProdPrice" readonly />
+              </div>
+              <div class="col-md-2 form-group">
+                <label class="form-label">Quantity</label>
+                <input class="form-input" id="billProdQty" type="number" value="1" min="1" />
+              </div>
+              <div class="col-md-1 form-group">
+                <button class="btn btn-maroon btn-full" onclick="addItemToBill()" style="height: 38px;"><i class="fas fa-plus"></i></button>
+              </div>
+            </div>
+
+            <!-- Step 3: Current Invoice Items Table -->
+            <h5 class="border-bottom pb-2 mb-3 text-secondary" style="font-size: 14px; font-weight: 700;">3. SELECTED ITEMS</h5>
+            <div class="table-wrap mb-3" style="max-height: 200px; overflow-y: auto;">
+              <table class="table align-middle">
+                <thead>
+                  <tr>
+                    <th>Product Name</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="billItemsBody">
+                  <tr>
+                    <td colspan="5" class="text-center text-muted">No items added to invoice. Select design above to add.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Invoice Checkout & Calculations Column -->
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">💰 Calculations & Checkout</div></div>
+          <div class="panel-body">
+            <div class="d-flex justify-content-between py-2 border-bottom">
+              <span class="text-muted">Subtotal</span>
+              <strong id="billCalcSubtotal">₹0.00</strong>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom">
+              <span class="text-muted">GST (5%)</span>
+              <strong id="billCalcTax">₹0.00</strong>
+            </div>
+            
+            <div class="py-2 border-bottom">
+              <div class="row g-2 align-items-center">
+                <div class="col-7">
+                  <span class="text-muted">Coupon Discount</span>
+                </div>
+                <div class="col-5 text-end">
+                  <strong class="text-danger" id="billCalcDiscount">-₹0.00</strong>
+                </div>
+              </div>
+              <div class="row g-1 mt-2">
+                <div class="col-8">
+                  <input class="form-input py-1" id="billCouponCode" placeholder="WELCOME10" style="font-size: 11px;" />
+                </div>
+                <div class="col-4">
+                  <button class="btn btn-outline btn-sm w-100" onclick="applyBillCoupon()">Apply</button>
+                </div>
+              </div>
+              <div id="billCouponMsg" style="font-size: 11px; margin-top: 4px;"></div>
+            </div>
+
+            <div class="d-flex justify-content-between py-3 mb-4">
+              <span class="fs-5 fw-bold text-dark">Grand Total</span>
+              <strong class="fs-4 text-primary" id="billCalcTotal" style="color: var(--maroon) !important;">₹0.00</strong>
+            </div>
+
+            <button class="btn btn-maroon btn-full py-3 mb-3 fs-6" onclick="submitBillAndInvoice()"><i class="fas fa-check-double me-2"></i>Generate Bill & Complete Transaction</button>
+            <div id="invoiceDownloadBlock" class="d-none">
+              <div class="alert alert-success py-2 mb-3" role="alert" style="font-size: 12px;">
+                <i class="fas fa-circle-check me-1"></i> Invoice generated successfully! Select download actions:
+              </div>
+              <div class="row g-2">
+                <div class="col-6">
+                  <button class="btn btn-outline btn-full" onclick="downloadInvoiceDocument('pdf')"><i class="fas fa-file-pdf text-danger me-2"></i>Invoice PDF</button>
+                </div>
+                <div class="col-6">
+                  <button class="btn btn-outline btn-full" onclick="downloadInvoiceDocument('docx')"><i class="fas fa-file-word text-primary me-2"></i>Invoice DOCX</button>
+                </div>
+              </div>
+              <button class="btn btn-gold btn-full mt-2" onclick="printInvoiceBill()"><i class="fas fa-print me-2"></i>Print Invoice Bill</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ REVIEWS / FEEDBACK ═══════ -->
+    <div class="page" id="page-reviews">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">⭐ Customer Reviews & Feedback</div>
+          <div class="d-flex gap-2 align-items-center">
+            <span class="badge badge-gold" id="avgReviewBadge">Avg: 5.0 ★</span>
+            <select class="form-select form-select-sm" id="reviewRatingFilter" onchange="loadReviews()" style="width: auto;">
+              <option value="all">All Ratings</option>
+              <option value="5">5 Stars</option>
+              <option value="4">4 Stars</option>
+              <option value="3">3 Stars</option>
+              <option value="2">2 Stars</option>
+              <option value="1">1 Star</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Customer Name</th>
+                <th>Mobile Number</th>
+                <th>Rating</th>
+                <th>Feedback Message</th>
+                <th>Date & Time</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reviewsTableBody">
+              <tr>
+                <td colspan="7" class="text-center py-4"><span class="loading-spinner"></span> Loading feedback...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ REPORTS & EXPORTS ═══════ -->
+    <div class="page" id="page-reports">
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title"><i class="fas fa-chart-pie me-2"></i>Business Sales Reports</div></div>
+          <div class="panel-body">
+            <div class="row g-2 text-center mb-4">
+              <div class="col-3">
+                <div class="border rounded py-2 bg-light">
+                  <div class="text-muted small">Daily</div>
+                  <strong class="fs-6" id="reportDailyRevenue">₹0.00</strong>
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="border rounded py-2 bg-light">
+                  <div class="text-muted small">Weekly</div>
+                  <strong class="fs-6" id="reportWeeklyRevenue">₹0.00</strong>
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="border rounded py-2 bg-light">
+                  <div class="text-muted small">Monthly</div>
+                  <strong class="fs-6" id="reportMonthlyRevenue">₹0.00</strong>
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="border rounded py-2 bg-light">
+                  <div class="text-muted small">Yearly</div>
+                  <strong class="fs-6" id="reportYearlyRevenue">₹0.00</strong>
+                </div>
+              </div>
+            </div>
+            <h6 class="border-bottom pb-2 text-secondary mb-3">EXPORT OPTIONS</h6>
+            <div class="row g-2">
+              <div class="col-6">
+                <button class="btn btn-outline btn-full py-3" onclick="exportReportFile('excel')"><i class="fas fa-file-excel text-success me-2"></i>Export Excel Sheet</button>
+              </div>
+              <div class="col-6">
+                <button class="btn btn-outline btn-full py-3" onclick="exportReportFile('csv')"><i class="fas fa-file-csv text-info me-2"></i>Export CSV Table</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title"><i class="fas fa-list-check me-2"></i>Completed Transactions Log</div></div>
+          <div class="table-wrap" style="max-height: 250px; overflow-y: auto;">
+            <table class="table align-middle">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Customer</th>
+                  <th>Total</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="reportsBillingLogs">
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-3">No billing log entries.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ COUPONS ═══════ -->
+    <div class="page" id="page-coupons">
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">🎟️ Create Coupon</div></div>
+          <div class="panel-body">
+            <div class="form-group"><label class="form-label" for="cCode">Coupon Code *</label><input class="form-input" id="cCode" placeholder="e.g. DIWALI20" oninput="this.value=this.value.toUpperCase()" /></div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label" for="cDisc">Discount % *</label><input class="form-input" id="cDisc" type="number" placeholder="20" min="1" max="80" /></div>
+              <div class="form-group"><label class="form-label" for="cMax">Max Uses *</label><input class="form-input" id="cMax" type="number" placeholder="100" /></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label" for="cExpiry">Expiry Date *</label><input class="form-input" id="cExpiry" type="date" /></div>
+              <div class="form-group"><label class="form-label" for="cDesc">Description</label><input class="form-input" id="cDesc" placeholder="e.g. Festival offer" /></div>
+            </div>
+            <button class="btn btn-gold btn-full" onclick="createCoupon()">🎟️ Create Coupon</button>
+            <div class="success-msg" id="couponMsg"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">📋 Active Coupons</div><span style="font-size:11px;color:var(--muted);" id="couponCount">3 active</span></div>
+          <div id="couponList" style="padding:0;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ SETTINGS ═══════ -->
+    <div class="page" id="page-settings">
+      <div class="grid-2">
+        <div>
+          <!-- Shop Settings -->
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">🏪 Shop Settings</div></div>
+            <div class="panel-body">
+              <div class="form-group"><label class="form-label">Shop Name</label><input class="form-input" id="setName" value="Pure Weaves" /></div>
+              <div class="form-group"><label class="form-label">WhatsApp Number</label><input class="form-input" id="setWA" value="+91 8088744654" /></div>
+              <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="setLoc" value="Shivamogga, Karnataka" /></div>
+              <div class="form-group"><label class="form-label">Instagram Link</label><input class="form-input" id="setInsta" placeholder="https://instagram.com/pureweaves_sareesbunches" /></div>
+              <div class="form-group"><label class="form-label">Website Title</label><input class="form-input" id="setTitle" value="Pure Weaves – Saree Kuchu & Bunches" /></div>
+              <div class="form-group"><label class="form-label">About Shop</label><textarea class="form-input" id="setAbout">Handcrafted saree kuchu and bunches by Latha &amp; Gangadhar. Shivamogga, Karnataka.</textarea></div>
+              <button class="btn btn-maroon" onclick="saveSettings()">💾 Save Settings</button>
+              <div class="success-msg" id="settingsMsg"></div>
+            </div>
+          </div>
+
+          <!-- Admin Password -->
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">🔒 Change Password</div></div>
+            <div class="panel-body">
+              <div class="form-group"><label class="form-label">Current Password</label><input class="form-input" type="password" id="curPass" placeholder="Current password" /></div>
+              <div class="form-group"><label class="form-label">New Password</label><input class="form-input" type="password" id="newPass" placeholder="New password (min 6 chars)" /></div>
+              <div class="form-group"><label class="form-label">Confirm Password</label><input class="form-input" type="password" id="confPass" placeholder="Confirm new password" /></div>
+              <button class="btn btn-maroon" onclick="changePass()">🔒 Update Password</button>
+              <div class="success-msg" id="passMsg"></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <!-- Theme Settings -->
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">🎨 Theme Settings</div></div>
+            <div class="panel-body">
+              <div class="theme-options">
+                <div class="theme-opt theme-light selected" id="themeLight" onclick="setTheme('light')">
+                  <div class="theme-preview"></div>
+                  <div class="theme-opt-name">☀️ Light Mode</div>
+                </div>
+                <div class="theme-opt theme-dark" id="themeDark" onclick="setTheme('dark')">
+                  <div class="theme-preview"></div>
+                  <div class="theme-opt-name">🌙 Dark Mode</div>
+                </div>
+              </div>
+              <div class="toggle-wrap">
+                <label class="toggle"><input type="checkbox" id="autoTheme" onchange="saveThemeSettings()" /><span class="toggle-slider"></span></label>
+                <span>Auto switch by time</span>
+              </div>
+              <div id="autoThemeOptions" style="display:none;">
+                <div class="form-row">
+                  <div class="form-group"><label class="form-label">Light Mode From</label><input class="form-input" type="time" id="lightFrom" value="06:00" onchange="saveThemeSettings()" /></div>
+                  <div class="form-group"><label class="form-label">Dark Mode From</label><input class="form-input" type="time" id="darkFrom" value="18:00" onchange="saveThemeSettings()" /></div>
+                </div>
+              </div>
+              <p style="font-size:11px;color:var(--muted);margin-top:8px;">Auto-switch changes theme based on time you set above.</p>
+            </div>
+          </div>
+
+          <!-- Notifications Settings -->
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">🔔 Notifications</div></div>
+            <div class="panel-body">
+              <div class="toggle-wrap"><label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label><span>New order alerts</span></div>
+              <div class="toggle-wrap"><label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label><span>New customer registration</span></div>
+              <div class="toggle-wrap"><label class="toggle"><input type="checkbox" /><span class="toggle-slider"></span></label><span>Daily sales summary</span></div>
+              <div class="toggle-wrap"><label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label><span>Low stock warning</span></div>
+              <div class="toggle-wrap"><label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label><span>WhatsApp order confirmations</span></div>
+            </div>
+          </div>
+
+          <!-- Tech Info -->
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">🛠️ Tech Info</div></div>
+            <div class="panel-body" style="font-size:12px;line-height:2;color:var(--text);">
+              🌐 <strong>Frontend:</strong> HTML5, CSS3, JavaScript (ES6+)<br/>
+              🐍 <strong>Backend:</strong> Python 3.15.0a7, Flask<br/>
+              🗄️ <strong>Database:</strong> SQLite (sqlite3)<br/>
+              📊 <strong>Visualizations:</strong> Chart.js 4.x<br/>
+              📄 <strong>Reporting:</strong> FPDF2 &amp; manual OpenXML Zip DOCX<br/>
+              🎓 <strong>Project Name:</strong> Smart Billing &amp; Customer Feedback Management System
+            </div>
+          </div>
+
+          <!-- Danger Zone -->
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title" style="color:var(--red);">⚠️ Danger Zone</div></div>
+            <div class="panel-body">
+              <button class="btn btn-red btn-full" onclick="clearData()">🗑️ Clear All Orders & Customers</button>
+              <p style="font-size:11px;color:var(--muted);margin-top:7px;">Cannot be undone. Designs are kept safe.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main-wrap -->
+
+<!-- ═══════ EDIT DESIGN MODAL ═══════ -->
+<!-- ═══════ PRODUCT MODAL (Add/Edit) ═══════ -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal" style="max-width:580px;">
+    <div class="modal-header">
+      <div class="modal-title" id="productModalTitle">✏️ Add / Edit Product</div>
+      <button class="modal-close" onclick="closeModal('productModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="prodModalId" />
+      <div class="form-group">
+        <label class="form-label" for="prodModalCode">Product Code *</label>
+        <input class="form-input" id="prodModalCode" placeholder="e.g. PW-101" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="prodModalName">Product Name *</label>
+        <input class="form-input" id="prodModalName" placeholder="e.g. Silk Zari Kuchu" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="prodModalCat">Category *</label>
+          <select class="form-input" id="prodModalCat">
+            <option>Kuchu</option>
+            <option>Kuchu Bunches</option>
+            <option>Bridal Collection</option>
+            <option>Bangles & Jewelry</option>
+            <option>Jewelry Sets</option>
+            <option>Blouse Work</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="prodModalStatus">Status</label>
+          <select class="form-input" id="prodModalStatus">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="prodModalPrice">Price (INR) *</label>
+          <input class="form-input" id="prodModalPrice" type="number" placeholder="500" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="prodModalStock">Stock Quantity *</label>
+          <input class="form-input" id="prodModalStock" type="number" placeholder="10" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="prodModalDesc">Description</label>
+        <textarea class="form-input" id="prodModalDesc" rows="3" placeholder="Describe the design details..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="prodModalImg">Product Image (File or URL or Base64)</label>
+        <input class="form-input" id="prodModalImg" placeholder="https://example.com/image.jpg" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red d-none" id="prodModalDeleteBtn" onclick="deleteProductFromModal()">🗑️ Delete</button>
+      <button class="btn btn-outline" onclick="closeModal('productModal')">Cancel</button>
+      <button class="btn btn-maroon" onclick="saveProductFromModal()">💾 Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ CUSTOMER MODAL (Add/Edit) ═══════ -->
+<div class="modal-overlay" id="customerModal">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-header">
+      <div class="modal-title" id="custModalTitle">👥 Add / Edit Customer</div>
+      <button class="modal-close" onclick="closeModal('customerModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="custModalId" />
+      <div class="form-group">
+        <label class="form-label" for="custModalName">Customer Name *</label>
+        <input class="form-input" id="custModalName" placeholder="e.g. Sanju" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="custModalMobile">Mobile Number *</label>
+        <input class="form-input" id="custModalMobile" placeholder="e.g. 9876543210" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="custModalEmail">Email Address</label>
+        <input class="form-input" id="custModalEmail" placeholder="e.g. customer@example.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="custModalAddress">Full Address</label>
+        <textarea class="form-input" id="custModalAddress" rows="2" placeholder="e.g. Shivamogga, Karnataka"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red d-none" id="custModalDeleteBtn" onclick="deleteCustomerFromModal()">🗑️ Delete</button>
+      <button class="btn btn-outline" onclick="closeModal('customerModal')">Cancel</button>
+      <button class="btn btn-maroon" onclick="saveCustomerFromModal()">💾 Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ PRINTABLE INVOICE VIEW MODAL ═══════ -->
+<div class="modal-overlay" id="invoiceModal">
+  <div class="modal" style="max-width:800px; height: 90vh;">
+    <div class="modal-header">
+      <div class="modal-title">📄 Invoice Viewer</div>
+      <button class="modal-close" onclick="closeModal('invoiceModal')">✕</button>
+    </div>
+    <div class="modal-body bg-light overflow-auto" id="invoiceModalPrintArea" style="max-height: 70vh;">
+      <!-- Invoice Printable Container -->
+      <div class="bg-white p-4 border shadow-sm mx-auto my-3 printable-invoice-container" style="max-width: 650px; font-family: 'Lato', sans-serif;">
+        <div class="row align-items-center mb-4">
+          <div class="col-7">
+            <h2 class="m-0 fw-bold" style="font-family: 'Playfair Display', serif; color: var(--maroon);">Pure Weaves</h2>
+            <div class="text-muted small">Shivamogga, Karnataka</div>
+            <div class="text-muted small">Phone: +91 80887 44654</div>
+          </div>
+          <div class="col-5 text-end">
+            <h3 class="text-uppercase m-0 fw-bold" style="color: var(--muted);">INVOICE</h3>
+            <div class="small">Invoice #: <strong id="invPrintNum">PW-10001</strong></div>
+            <div class="small">Date: <span id="invPrintDate">09 Jun 2026</span></div>
+          </div>
+        </div>
+        <hr/>
+        <div class="row mb-4">
+          <div class="col-6">
+            <h6 class="text-uppercase text-secondary small fw-bold">BILLED TO:</h6>
+            <div class="fw-bold" id="invPrintCustName">Sanju</div>
+            <div class="small text-muted" id="invPrintCustMobile">+91 9876543210</div>
+            <div class="small text-muted" id="invPrintCustEmail">customer@mail.com</div>
+            <div class="small text-muted" id="invPrintCustAddress">Shivamogga, Karnataka</div>
+          </div>
+        </div>
+        <table class="table table-bordered align-middle text-center small mb-4">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th class="text-start">Item Description</th>
+              <th>Unit Price</th>
+              <th>Qty</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="invPrintItemsBody">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+        <div class="row justify-content-end">
+          <div class="col-6">
+            <table class="table table-sm table-borderless text-end small">
+              <tr>
+                <td class="text-muted">Subtotal:</td>
+                <td id="invPrintSubtotal">₹0.00</td>
+              </tr>
+              <tr>
+                <td class="text-muted">GST (5%):</td>
+                <td id="invPrintTax">₹0.00</td>
+              </tr>
+              <tr id="invPrintDiscountRow" class="d-none">
+                <td class="text-muted">Discount Applied:</td>
+                <td class="text-danger" id="invPrintDiscount">-₹0.00</td>
+              </tr>
+              <tr class="border-top fw-bold fs-6">
+                <td>Grand Total:</td>
+                <td id="invPrintGrandTotal" style="color: var(--maroon);">₹0.00</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div class="text-center mt-5 text-muted small border-top pt-3">
+          Thank you for choosing Pure Weaves! We appreciate your business.
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('invoiceModal')">Close</button>
+      <button class="btn btn-maroon" onclick="triggerSystemPrint()"><i class="fas fa-print me-1"></i>Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+let adminSecretHeader = localStorage.getItem('pw_admin_secret') || '';
+let selectedCustomerId = null;
+let selectedProductId = null;
+let billItems = [];
+let appliedCoupon = null;
+let generatedBillId = null;
+let dashboardChart = null;
+
+let STORE = {
+  products: [],
+  customers: [],
+  reviews: [],
+  coupons: [],
+  bills: [],
+  settings: {
+    shopName: 'Pure Weaves',
+    waNumber: '+91 8088744654',
+    location: 'Shivamogga, Karnataka',
+    instagram: 'https://instagram.com/pureweaves_sareesbunches',
+    title: 'Pure Weaves – Saree Kuchu & Bunches',
+    about: 'Handcrafted saree kuchu and bunches by Latha & Gangadhar. Shivamogga, Karnataka.'
+  },
+  theme: 'light',
+  autoTheme: false,
+  lightFrom: '06:00',
+  darkFrom: '18:00',
+  adminPass: 'admin123'
+};
+
+// ═══════════════════════════════════════════════════
+//  SECURITY & LOGIN
+// ═══════════════════════════════════════════════════
+function checkAuth() {
+  const loginScreen = document.getElementById('loginScreen');
+  if (!adminSecretHeader) {
+    loginScreen.style.display = 'flex';
+  } else {
+    loginScreen.style.display = 'none';
+    fetchBackendData();
+  }
+}
+
+function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value.trim();
+  const err = document.getElementById('loginError');
+
+  fetch('/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: user, password: pass })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.secret) {
+      adminSecretHeader = data.secret;
+      localStorage.setItem('pw_admin_secret', data.secret);
+      document.getElementById('loginScreen').style.display = 'none';
+      err.textContent = '';
+      fetchBackendData();
+      showToast('🔐 Logged in successfully!');
+    } else {
+      err.textContent = '❌ Invalid credentials.';
+    }
+  })
+  .catch(e => {
+    err.textContent = '❌ Server connection failed.';
+  });
+}
+
+function doLogout() {
+  localStorage.removeItem('pw_admin_secret');
+  adminSecretHeader = '';
+  document.getElementById('loginScreen').style.display = 'flex';
+  showToast('🚪 Logged out successfully.');
+}
+
+// ═══════════════════════════════════════════════════
+//  DATA SYNCHRONIZATION
+// ═══════════════════════════════════════════════════
+function fetchBackendData() {
+  if (!adminSecretHeader) return;
+  const headers = { 'X-Admin-Secret': adminSecretHeader };
+
+  // Set loading states
+  const spinner = '<span class="loading-spinner"></span>';
+  document.getElementById('statCustomers').innerHTML = spinner;
+  document.getElementById('statBills').innerHTML = spinner;
+  document.getElementById('statRevenue').innerHTML = spinner;
+  document.getElementById('statReviews').innerHTML = spinner;
+  document.getElementById('statProducts').innerHTML = spinner;
+
+  Promise.all([
+    fetch('/api/products').then(r => r.json()),
+    fetch('/api/admin/customers', { headers }).then(r => r.json()),
+    fetch('/api/admin/reviews', { headers }).then(r => r.json()),
+    fetch('/api/admin/reports', { headers }).then(r => r.json()),
+    fetch('/api/admin/coupons', { headers }).then(r => r.json())
+  ])
+  .then(([products, customers, reviews, reports, coupons]) => {
+    STORE.products = Array.isArray(products) ? products : [];
+    STORE.customers = Array.isArray(customers) ? customers : [];
+    STORE.reviews = Array.isArray(reviews) ? reviews : [];
+    STORE.coupons = Array.isArray(coupons) ? coupons : [];
+
+    // Render Stats
+    const analytics = reports.analytics || {};
+    document.getElementById('statCustomers').textContent = analytics.total_customers || STORE.customers.length;
+    document.getElementById('statBills').textContent = analytics.total_bills || 0;
+    document.getElementById('statRevenue').textContent = '₹' + (analytics.total_revenue || 0).toFixed(2);
+    document.getElementById('statReviews').textContent = analytics.total_reviews || STORE.reviews.length;
+    document.getElementById('statProducts').textContent = analytics.total_products || STORE.products.length;
+
+    // Chart.js Graph
+    renderDashboardChart(reports);
+
+    // Low Stock Alert
+    checkLowStock(STORE.products);
+
+    // Populate data tables
+    loadProducts();
+    loadCustomers();
+    loadBillingCustomers();
+    loadBillingProducts();
+    loadReviews();
+    loadReports(reports);
+    loadCoupons();
+  })
+  .catch(err => {
+    console.error('Failed to sync backend:', err);
+    showToast('⚠️ Sync error. Reconnecting to database...');
+  });
+}
+
+function checkLowStock(products) {
+  const lowStock = products.filter(p => p.quantity < 5);
+  const banner = document.getElementById('lowStockBanner');
+  const tbody = document.getElementById('lowStockTableBody');
+
+  if (lowStock.length > 0) {
+    banner.classList.remove('d-none');
+    tbody.innerHTML = lowStock.map(p => `
+      <tr>
+        <td style="font-weight: 700; color: var(--maroon);">${escapeHTML(p.code)}</td>
+        <td>${escapeHTML(p.name)}</td>
+        <td><span class="badge badge-gray">${escapeHTML(p.category)}</span></td>
+        <td><strong class="text-danger">${p.quantity}</strong></td>
+        <td><button class="btn btn-outline btn-sm" onclick="showEditProductModal(${p.id})">Restock</button></td>
+      </tr>
+    `).join('');
+  } else {
+    banner.classList.add('d-none');
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">No low stock items. All inventory levels are healthy.</td></tr>`;
+  }
+}
+
+function renderDashboardChart(reports) {
+  const ctx = document.getElementById('dashboardChart');
+  if (!ctx) return;
+  if (dashboardChart) dashboardChart.destroy();
+
+  const labels = (reports.chart_data && reports.chart_data.labels) || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const values = (reports.chart_data && reports.chart_data.values) || [0, 0, 0, 0, 0, 0, 0];
+
+  dashboardChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Revenue (INR)',
+        data: values,
+        borderColor: '#7B1A2E',
+        backgroundColor: 'rgba(123, 26, 46, 0.1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  PRODUCTS CRUD
+// ═══════════════════════════════════════════════════
+function loadProducts() {
+  const tbody = document.getElementById('productsTableBody');
+  const catFilter = document.getElementById('prodCatFilter').value;
+  
+  const filtered = catFilter === 'All' ? STORE.products : STORE.products.filter(p => p.category === catFilter);
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No products found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(p => {
+    const isLow = p.quantity < 5;
+    return `
+      <tr class="${isLow ? 'table-warning' : ''}" style="${isLow ? 'border-left: 4px solid var(--red);' : ''}">
+        <td><strong style="color: var(--maroon);">${escapeHTML(p.code)}</strong></td>
+        <td>
+          <img src="${p.image_path || 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%2740%27 height=%2740%27><rect width=%27100%%27 height=%27100%%27 fill=%27%23ccc%27/></svg>'}" 
+               style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;" alt="product"/>
+        </td>
+        <td><strong>${escapeHTML(p.name)}</strong></td>
+        <td><span class="badge badge-gray">${escapeHTML(p.category)}</span></td>
+        <td>₹${p.price_min.toFixed(2)}</td>
+        <td>
+          <span class="badge ${isLow ? 'bg-danger text-white' : 'badge-green'}">
+            ${p.quantity} items ${isLow ? '⚠️ Low' : ''}
+          </span>
+        </td>
+        <td><span class="badge ${p.is_active ? 'badge-green' : 'badge-gray'}">${p.is_active ? 'Active' : 'Inactive'}</span></td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="showEditProductModal(${p.id})"><i class="fas fa-edit"></i> Edit</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function showAddProductModal() {
+  document.getElementById('prodModalId').value = '';
+  document.getElementById('prodModalCode').value = '';
+  document.getElementById('prodModalName').value = '';
+  document.getElementById('prodModalCat').value = 'Kuchu';
+  document.getElementById('prodModalStatus').value = 'active';
+  document.getElementById('prodModalPrice').value = '';
+  document.getElementById('prodModalStock').value = '';
+  document.getElementById('prodModalDesc').value = '';
+  document.getElementById('prodModalImg').value = '';
+  document.getElementById('prodModalDeleteBtn').classList.add('d-none');
+  
+  document.getElementById('productModalTitle').textContent = '➕ Add New Product';
+  document.getElementById('productModal').classList.add('show');
+}
+
+function showEditProductModal(id) {
+  const p = STORE.products.find(x => x.id == id);
+  if (!p) return;
+
+  document.getElementById('prodModalId').value = p.id;
+  document.getElementById('prodModalCode').value = p.code || '';
+  document.getElementById('prodModalName').value = p.name || '';
+  document.getElementById('prodModalCat').value = p.category || 'Kuchu';
+  document.getElementById('prodModalStatus').value = p.is_active ? 'active' : 'inactive';
+  document.getElementById('prodModalPrice').value = p.price_min;
+  document.getElementById('prodModalStock').value = p.quantity;
+  document.getElementById('prodModalDesc').value = p.description || '';
+  document.getElementById('prodModalImg').value = p.image_path || '';
+  document.getElementById('prodModalDeleteBtn').classList.remove('d-none');
+
+  document.getElementById('productModalTitle').textContent = '✏️ Edit Product details';
+  document.getElementById('productModal').classList.add('show');
+}
+
+function saveProductFromModal() {
+  const id = document.getElementById('prodModalId').value;
+  const code = document.getElementById('prodModalCode').value.trim();
+  const name = document.getElementById('prodModalName').value.trim();
+  const category = document.getElementById('prodModalCat').value;
+  const status = document.getElementById('prodModalStatus').value === 'active';
+  const price = parseFloat(document.getElementById('prodModalPrice').value) || 0;
+  const quantity = parseInt(document.getElementById('prodModalStock').value) || 0;
+  const description = document.getElementById('prodModalDesc').value.trim();
+  const image_path = document.getElementById('prodModalImg').value.trim();
+
+  if (!code || !name || price <= 0 || quantity < 0) {
+    showToast('⚠️ Please fill in all required fields (Code, Name, Price, Stock).');
+    return;
+  }
+
+  const payload = { code, name, category, is_active: status, price_min: price, quantity, description, image_path };
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-Admin-Secret': adminSecretHeader
+  };
+
+  const url = id ? `/api/admin/product/edit/${id}` : '/api/admin/product/add';
+  const method = 'POST';
+
+  fetch(url, { method, headers, body: JSON.stringify(payload) })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        showToast('❌ ' + data.error);
+      } else {
+        showToast(id ? '✅ Product updated!' : '✅ Product created!');
+        closeModal('productModal');
+        fetchBackendData();
+      }
+    })
+    .catch(e => showToast('❌ Connection error.'));
+}
+
+function deleteProductFromModal() {
+  const id = document.getElementById('prodModalId').value;
+  if (!id) return;
+
+  if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
+
+  fetch(`/api/admin/product/delete/${id}`, {
+    method: 'DELETE',
+    headers: { 'X-Admin-Secret': adminSecretHeader }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) {
+      showToast('❌ ' + data.error);
+    } else {
+      showToast('🗑️ Product deleted.');
+      closeModal('productModal');
+      fetchBackendData();
+    }
+  })
+  .catch(e => showToast('❌ Connection error.'));
+}
+
+// ═══════════════════════════════════════════════════
+//  CUSTOMERS CRUD
+// ═══════════════════════════════════════════════════
+function loadCustomers() {
+  const tbody = document.getElementById('customersTableBody');
+  if (STORE.customers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-3">No customers in directory.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = STORE.customers.map(c => `
+    <tr>
+      <td>${c.id}</td>
+      <td><strong>${escapeHTML(c.name)}</strong></td>
+      <td>${escapeHTML(c.mobile)}</td>
+      <td>${escapeHTML(c.email || '—')}</td>
+      <td>${escapeHTML(c.address || '—')}</td>
+      <td>${c.created_at || 'Recently'}</td>
+      <td>
+        <button class="btn btn-outline btn-sm me-1" onclick="showEditCustomerModal(${c.id})"><i class="fas fa-edit"></i> Edit</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function showAddCustomerModal() {
+  document.getElementById('custModalId').value = '';
+  document.getElementById('custModalName').value = '';
+  document.getElementById('custModalMobile').value = '';
+  document.getElementById('custModalEmail').value = '';
+  document.getElementById('custModalAddress').value = '';
+  document.getElementById('custModalDeleteBtn').classList.add('d-none');
+
+  document.getElementById('custModalTitle').textContent = '👥 Add New Customer';
+  document.getElementById('customerModal').classList.add('show');
+}
+
+function showEditCustomerModal(id) {
+  const c = STORE.customers.find(x => x.id == id);
+  if (!c) return;
+
+  document.getElementById('custModalId').value = c.id;
+  document.getElementById('custModalName').value = c.name || '';
+  document.getElementById('custModalMobile').value = c.mobile || '';
+  document.getElementById('custModalEmail').value = c.email || '';
+  document.getElementById('custModalAddress').value = c.address || '';
+  document.getElementById('custModalDeleteBtn').classList.remove('d-none');
+
+  document.getElementById('custModalTitle').textContent = '✏️ Edit Customer account';
+  document.getElementById('customerModal').classList.add('show');
+}
+
+function saveCustomerFromModal() {
+  const id = document.getElementById('custModalId').value;
+  const name = document.getElementById('custModalName').value.trim();
+  const mobile = document.getElementById('custModalMobile').value.trim();
+  const email = document.getElementById('custModalEmail').value.trim();
+  const address = document.getElementById('custModalAddress').value.trim();
+
+  if (!name || !mobile) {
+    showToast('⚠️ Name and Mobile are required.');
+    return;
+  }
+
+  const payload = { name, mobile, email, address };
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-Admin-Secret': adminSecretHeader
+  };
+
+  const url = id ? `/api/admin/customer/edit/${id}` : '/api/admin/customer/add';
+  
+  fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        showToast('❌ ' + data.error);
+      } else {
+        showToast(id ? '✅ Customer updated!' : '✅ Customer registered!');
+        closeModal('customerModal');
+        fetchBackendData();
+      }
+    })
+    .catch(e => showToast('❌ Connection error.'));
+}
+
+function deleteCustomerFromModal() {
+  const id = document.getElementById('custModalId').value;
+  if (!id) return;
+
+  if (!confirm('Delete this customer account? All invoices linked to this user will remain in system.')) return;
+
+  fetch(`/api/admin/customer/delete/${id}`, {
+    method: 'DELETE',
+    headers: { 'X-Admin-Secret': adminSecretHeader }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) {
+      showToast('❌ ' + data.error);
+    } else {
+      showToast('🗑️ Customer deleted.');
+      closeModal('customerModal');
+      fetchBackendData();
+    }
+  })
+  .catch(e => showToast('❌ Connection error.'));
+}
+
+// ═══════════════════════════════════════════════════
+//  BILLING WORKFLOW
+// ═══════════════════════════════════════════════════
+function loadBillingCustomers() {
+  const select = document.getElementById('billCustSelect');
+  if (!select) return;
+  select.innerHTML = '<option value="">-- Create New / Select Customer --</option>' + 
+    STORE.customers.map(c => `<option value="${c.id}">${escapeHTML(c.name)} (${escapeHTML(c.mobile)})</option>`).join('');
+}
+
+function autoPopulateCustomer() {
+  const val = document.getElementById('billCustSelect').value;
+  if (!val) {
+    document.getElementById('billCustName').value = '';
+    document.getElementById('billCustMobile').value = '';
+    document.getElementById('billCustEmail').value = '';
+    document.getElementById('billCustAddress').value = '';
+    return;
+  }
+
+  const cust = STORE.customers.find(c => c.id == val);
+  if (cust) {
+    document.getElementById('billCustName').value = cust.name || '';
+    document.getElementById('billCustMobile').value = cust.mobile || '';
+    document.getElementById('billCustEmail').value = cust.email || '';
+    document.getElementById('billCustAddress').value = cust.address || '';
+  }
+}
+
+function loadBillingProducts() {
+  const select = document.getElementById('billProdSelect');
+  if (!select) return;
+  select.innerHTML = '<option value="">-- Select Product --</option>' + 
+    STORE.products.map(p => `<option value="${p.id}">${escapeHTML(p.code)} - ${escapeHTML(p.name)} (Stock: ${p.quantity})</option>`).join('');
+}
+
+function autoPopulatePrice() {
+  const val = document.getElementById('billProdSelect').value;
+  const priceInput = document.getElementById('billProdPrice');
+  if (!val) {
+    priceInput.value = '';
+    return;
+  }
+
+  const prod = STORE.products.find(p => p.id == val);
+  if (prod) {
+    priceInput.value = prod.price_min.toFixed(2);
+  }
+}
+
+function addItemToBill() {
+  const prodId = document.getElementById('billProdSelect').value;
+  const qty = parseInt(document.getElementById('billProdQty').value);
+  if (!prodId || isNaN(qty) || qty <= 0) {
+    showToast('⚠️ Please select a product and valid quantity.');
+    return;
+  }
+
+  const prod = STORE.products.find(p => p.id == prodId);
+  if (!prod) return;
+
+  if (qty > prod.quantity) {
+    showToast(`⚠️ Cannot add item. Only ${prod.quantity} left in stock!`);
+    return;
+  }
+
+  const existing = billItems.find(item => item.product_id == prodId);
+  if (existing) {
+    if (existing.qty + qty > prod.quantity) {
+      showToast(`⚠️ Total quantity of ${existing.qty + qty} exceeds stock of ${prod.quantity}!`);
+      return;
+    }
+    existing.qty += qty;
+  } else {
+    billItems.push({
+      product_id: prod.id,
+      code: prod.code,
+      name: prod.name,
+      price: prod.price_min,
+      qty: qty
+    });
+  }
+
+  renderBillItems();
+}
+
+function renderBillItems() {
+  const tbody = document.getElementById('billItemsBody');
+  if (billItems.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No items added to invoice. Select design above to add.</td></tr>';
+    updateBillTotals();
+    return;
+  }
+
+  tbody.innerHTML = billItems.map((item, index) => `
+    <tr>
+      <td>${escapeHTML(item.name)}</td>
+      <td>${item.qty}</td>
+      <td>₹${item.price.toFixed(2)}</td>
+      <td>₹${(item.price * item.qty).toFixed(2)}</td>
+      <td><button class="btn btn-red btn-sm" onclick="removeItemFromBill(${index})"><i class="fas fa-trash"></i></button></td>
+    </tr>
+  `).join('');
+
+  updateBillTotals();
+}
+
+function removeItemFromBill(index) {
+  billItems.splice(index, 1);
+  renderBillItems();
+}
+
+function updateBillTotals() {
+  const subtotal = billItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+  const tax = subtotal * 0.05;
+  
+  let discount = 0;
+  if (appliedCoupon) {
+    discount = subtotal * (appliedCoupon.discount / 100);
+  }
+
+  const total = subtotal + tax - discount;
+
+  document.getElementById('billCalcSubtotal').textContent = '₹' + subtotal.toFixed(2);
+  document.getElementById('billCalcTax').textContent = '₹' + tax.toFixed(2);
+  document.getElementById('billCalcDiscount').textContent = '-₹' + discount.toFixed(2);
+  document.getElementById('billCalcTotal').textContent = '₹' + total.toFixed(2);
+}
+
+function applyBillCoupon() {
+  const code = document.getElementById('billCouponCode').value.trim().toUpperCase();
+  const msg = document.getElementById('billCouponMsg');
+  if (!code) {
+    msg.className = 'text-danger';
+    msg.textContent = 'Please enter a coupon code.';
+    return;
+  }
+
+  const match = STORE.coupons.find(c => c.code === code && c.is_active);
+  if (!match) {
+    msg.className = 'text-danger';
+    msg.textContent = '❌ Invalid or inactive coupon code.';
+    appliedCoupon = null;
+    updateBillTotals();
+    return;
+  }
+
+  appliedCoupon = match;
+  msg.className = 'text-success';
+  msg.textContent = `✅ Coupon applied: ${match.discount}% off!`;
+  updateBillTotals();
+}
+
+function submitBillAndInvoice() {
+  const name = document.getElementById('billCustName').value.trim();
+  const mobile = document.getElementById('billCustMobile').value.trim();
+  const email = document.getElementById('billCustEmail').value.trim();
+  const address = document.getElementById('billCustAddress').value.trim();
+
+  if (!name || !mobile) {
+    showToast('⚠️ Customer Name and Mobile are required!');
+    return;
+  }
+  if (billItems.length === 0) {
+    showToast('⚠️ No items added to invoice!');
+    return;
+  }
+
+  const subtotal = billItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+  const tax = subtotal * 0.05;
+  const discount = appliedCoupon ? subtotal * (appliedCoupon.discount / 100) : 0;
+  const total = subtotal + tax - discount;
+
+  const payload = {
+    customer_name: name,
+    mobile: mobile,
+    email: email,
+    address: address,
+    items: billItems,
+    subtotal: subtotal,
+    tax: tax,
+    discount: discount,
+    coupon_code: appliedCoupon ? appliedCoupon.code : null,
+    total: total
+  };
+
+  fetch('/api/admin/bills/add', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Secret': adminSecretHeader
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) {
+      showToast('❌ ' + data.error);
+    } else {
+      generatedBillId = data.id;
+      showToast('✅ Bill saved to database!');
+      document.getElementById('invoiceDownloadBlock').classList.remove('d-none');
+      
+      // Clear cart
+      billItems = [];
+      renderBillItems();
+      appliedCoupon = null;
+      document.getElementById('billCouponCode').value = '';
+      document.getElementById('billCouponMsg').textContent = '';
+      
+      // Refresh backend datasets
+      fetchBackendData();
+    }
+  })
+  .catch(e => {
+    showToast('❌ Failed to save bill.');
+  });
+}
+
+function downloadInvoiceDocument(format) {
+  if (!generatedBillId) return;
+  window.open(`/api/admin/bills/${format}/${generatedBillId}`, '_blank');
+}
+
+function printInvoiceBill() {
+  if (!generatedBillId) return;
+  const headers = { 'X-Admin-Secret': adminSecretHeader };
+  
+  fetch('/api/admin/bills', { headers })
+    .then(r => r.json())
+    .then(bills => {
+      const bill = bills.find(b => b.id == generatedBillId);
+      if (!bill) return;
+
+      document.getElementById('invPrintNum').textContent = 'PW-' + bill.id;
+      document.getElementById('invPrintDate').textContent = bill.created_at;
+      document.getElementById('invPrintCustName').textContent = bill.customer_name;
+      document.getElementById('invPrintCustMobile').textContent = bill.mobile;
+      document.getElementById('invPrintCustEmail').textContent = bill.email || '—';
+      document.getElementById('invPrintCustAddress').textContent = bill.address || '—';
+
+      const items = bill.items || [];
+      document.getElementById('invPrintItemsBody').innerHTML = items.map((it, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td class="text-start">${escapeHTML(it.product_name)}</td>
+          <td>₹${it.price.toFixed(2)}</td>
+          <td>${it.quantity}</td>
+          <td>₹${(it.price * it.quantity).toFixed(2)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('invPrintSubtotal').textContent = '₹' + bill.subtotal.toFixed(2);
+      document.getElementById('invPrintTax').textContent = '₹' + bill.tax.toFixed(2);
+
+      const discRow = document.getElementById('invPrintDiscountRow');
+      if (bill.discount > 0) {
+        discRow.classList.remove('d-none');
+        document.getElementById('invPrintDiscount').textContent = '-₹' + bill.discount.toFixed(2);
+      } else {
+        discRow.classList.add('d-none');
+      }
+
+      document.getElementById('invPrintGrandTotal').textContent = '₹' + bill.total.toFixed(2);
+      document.getElementById('invoiceModal').classList.add('show');
+    });
+}
+
+function triggerSystemPrint() {
+  const printContent = document.getElementById('invoiceModalPrintArea').innerHTML;
+  const originalContent = document.body.innerHTML;
+
+  document.body.innerHTML = `
+    <div style="padding: 2rem; background: white; color: black; font-family: 'Lato', sans-serif;">
+      ${printContent}
+    </div>
+  `;
+  window.print();
+  document.body.innerHTML = originalContent;
+  window.location.reload(); // Hard refresh back to view
+}
+
+// ═══════════════════════════════════════════════════
+//  REVIEWS MANAGEMENT
+// ═══════════════════════════════════════════════════
+function loadReviews() {
+  const tbody = document.getElementById('reviewsTableBody');
+  const ratingFilter = document.getElementById('reviewRatingFilter').value;
+
+  const filtered = ratingFilter === 'all' ? STORE.reviews : STORE.reviews.filter(r => r.rating == parseInt(ratingFilter));
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-3">No reviews found matching filter.</td></tr>';
+    return;
+  }
+
+  // Calculate Average Rating
+  const totalRating = STORE.reviews.reduce((sum, r) => sum + r.rating, 0);
+  const avg = STORE.reviews.length > 0 ? (totalRating / STORE.reviews.length).toFixed(1) : '5.0';
+  document.getElementById('avgReviewBadge').textContent = `Avg: ${avg} ★`;
+
+  tbody.innerHTML = filtered.map(r => `
+    <tr>
+      <td>${r.id}</td>
+      <td><strong>${escapeHTML(r.customer_name)}</strong></td>
+      <td>${escapeHTML(r.mobile)}</td>
+      <td><span style="color: var(--gold);">${'★'.repeat(r.rating)}</span></td>
+      <td><em>"${escapeHTML(r.review)}"</em></td>
+      <td>${r.created_at}</td>
+      <td>
+        <button class="btn btn-red btn-sm" onclick="deleteReview(${r.id})"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════
+//  REPORTS & EXPORTS
+// ═══════════════════════════════════════════════════
+function loadReports(reports) {
+  const summaries = reports.analytics || {};
+  
+  document.getElementById('reportDailyRevenue').textContent = '₹' + (summaries.daily_revenue || 0).toFixed(2);
+  document.getElementById('reportWeeklyRevenue').textContent = '₹' + (summaries.weekly_revenue || 0).toFixed(2);
+  document.getElementById('reportMonthlyRevenue').textContent = '₹' + (summaries.monthly_revenue || 0).toFixed(2);
+  document.getElementById('reportYearlyRevenue').textContent = '₹' + (summaries.yearly_revenue || 0).toFixed(2);
+
+  const logs = reports.billing_logs || [];
+  const tbody = document.getElementById('reportsBillingLogs');
+  if (logs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">No transactions logged.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = logs.map(l => `
+    <tr>
+      <td><strong style="color: var(--maroon);">PW-${l.id}</strong></td>
+      <td>${escapeHTML(l.customer)}</td>
+      <td>₹${l.total.toFixed(2)}</td>
+      <td>${l.date}</td>
+    </tr>
+  `).join('');
+}
+
+function exportReportFile(format) {
+  window.open(`/api/admin/reports/export/${format}?secret=${encodeURIComponent(adminSecretHeader)}`, '_blank');
+}
+
+// ═══════════════════════════════════════════════════
+//  COUPONS MANAGEMENT
+// ═══════════════════════════════════════════════════
+function createCoupon() {
+  const code = document.getElementById('cCode').value.trim().toUpperCase();
+  const disc = parseFloat(document.getElementById('cDisc').value);
+  const max = parseInt(document.getElementById('cMax').value) || 100;
+  const exp = document.getElementById('cExpiry').value;
+  const desc = document.getElementById('cDesc').value.trim();
+  const msg = document.getElementById('couponMsg');
+
+  if (!code || isNaN(disc) || !exp) {
+    msg.className = 'error-msg';
+    msg.textContent = '⚠️ Code, Discount percentage and Expiry are required.';
+    return;
+  }
+
+  const payload = { code, discount: disc, max_uses: max, expiry: exp, description: desc };
+  
+  fetch('/api/admin/coupon/create', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Secret': adminSecretHeader
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) {
+      msg.className = 'error-msg';
+      msg.textContent = '❌ ' + data.error;
+    } else {
+      msg.className = 'success-msg';
+      msg.textContent = `✅ Coupon "${code}" created!`;
+      fetchBackendData();
+      
+      // Clear inputs
+      document.getElementById('cCode').value = '';
+      document.getElementById('cDisc').value = '';
+      document.getElementById('cMax').value = '';
+      document.getElementById('cExpiry').value = '';
+      document.getElementById('cDesc').value = '';
+    }
+  })
+  .catch(e => showToast('❌ Connection error.'));
+}
+
+function loadCoupons() {
+  const el = document.getElementById('couponList');
+  document.getElementById('couponCount').textContent = STORE.coupons.filter(c => c.is_active).length + ' active';
+
+  if (STORE.coupons.length === 0) {
+    el.innerHTML = '<p class="text-center text-muted py-3 m-0">No coupons active in system.</p>';
+    return;
+  }
+
+  el.innerHTML = STORE.coupons.map(c => `
+    <div class="d-flex justify-content-between align-items-center border-bottom px-3 py-2">
+      <div>
+        <strong style="color: var(--maroon);">${escapeHTML(c.code)}</strong>
+        <div class="text-muted small">${escapeHTML(c.description || 'Active discount coupon')}</div>
+      </div>
+      <div class="text-end">
+        <span class="badge badge-gold">${c.discount}% Off</span>
+        <div class="text-muted small" style="font-size: 10px;">Expires: ${c.expiry}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════
+//  SETTINGS WORKFLOW
+// ═══════════════════════════════════════════════════
+function loadSettingsForm() {
+  document.getElementById('setName').value = STORE.settings.shopName;
+  document.getElementById('setWA').value = STORE.settings.waNumber;
+  document.getElementById('setLoc').value = STORE.settings.location;
+  document.getElementById('setInsta').value = STORE.settings.instagram;
+  document.getElementById('setTitle').value = STORE.settings.title;
+  document.getElementById('setAbout').value = STORE.settings.about;
+}
+
+function saveSettings() {
+  const payload = {
+    shopName: document.getElementById('setName').value.trim(),
+    waNumber: document.getElementById('setWA').value.trim(),
+    location: document.getElementById('setLoc').value.trim(),
+    instagram: document.getElementById('setInsta').value.trim(),
+    title: document.getElementById('setTitle').value.trim(),
+    about: document.getElementById('setAbout').value.trim()
+  };
+
+  fetch('/api/admin/settings', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Secret': adminSecretHeader
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) {
+      showToast('❌ ' + data.error);
+    } else {
+      STORE.settings = payload;
+      showToast('💾 Settings saved successfully!');
+    }
+  })
+  .catch(e => showToast('❌ Connection error.'));
+}
+
+function changePass() {
+  const cur = document.getElementById('curPass').value;
+  const np = document.getElementById('newPass').value;
+  const cp = document.getElementById('confPass').value;
+  const msg = document.getElementById('passMsg');
+
+  if (!cur || !np || !cp) {
+    msg.className = 'error-msg';
+    msg.textContent = '⚠️ All fields are required.';
+    return;
+  }
+  if (np !== cp) {
+    msg.className = 'error-msg';
+    msg.textContent = '❌ Passwords do not match.';
+    return;
+  }
+
+  fetch('/api/admin/change-password', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Secret': adminSecretHeader
+    },
+    body: JSON.stringify({ current_password: cur, new_password: np })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) {
+      msg.className = 'error-msg';
+      msg.textContent = '❌ ' + data.error;
+    } else {
+      msg.className = 'success-msg';
+      msg.textContent = '✅ Password updated successfully!';
+      document.getElementById('curPass').value = '';
+      document.getElementById('newPass').value = '';
+      document.getElementById('confPass').value = '';
+    }
+  })
+  .catch(e => showToast('❌ Connection error.'));
+}
+
+function clearData() {
+  if (!confirm('Clear stats log cache? Products and Customer accounts will not be affected.')) return;
+  fetch('/api/admin/clear-logs', {
+    method: 'POST',
+    headers: { 'X-Admin-Secret': adminSecretHeader }
+  })
+  .then(r => r.json())
+  .then(data => {
+    showToast('🗑️ Cached records cleared.');
+    fetchBackendData();
+  })
+  .catch(e => showToast('❌ Connection error.'));
+}
+
+// ═══════════════════════════════════════════════════
+//  THEMING & NAVIGATION CONTROLLERS
+// ═══════════════════════════════════════════════════
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  
+  // Update selected class in sidebar menu
+  if (el) {
+    el.classList.add('active');
+  } else {
+    // Find matching elements
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(`'${name}'`)) {
+        n.classList.add('active');
+      }
+    });
+  }
+
+  const titles = { 
+    dashboard: 'Dashboard', 
+    designs: 'Products Inventory', 
+    customers: 'Customers Directory', 
+    billing: 'Invoice & Billing', 
+    reviews: 'Customer Reviews',
+    reports: 'Reports & Exports', 
+    coupons: 'Coupons Management', 
+    settings: 'Shop Settings' 
+  };
+  document.getElementById('topTitle').textContent = titles[name] || name;
+  document.getElementById('topBread').textContent = titles[name] || name;
+  
+  if (name === 'settings') loadSettingsForm();
+  if (name === 'billing') {
+    document.getElementById('invoiceDownloadBlock').classList.add('d-none');
+    generatedBillId = null;
+    billItems = [];
+    renderBillItems();
+  }
+
+  closeSidebar();
+  window.scrollTo(0,0);
+}
+
+function setTheme(t) {
+  STORE.theme = t;
+  document.body.classList.toggle('dark-mode', t === 'dark');
+  document.getElementById('themeLight').classList.toggle('selected', t === 'light');
+  document.getElementById('themeDark').classList.toggle('selected', t === 'dark');
+  document.getElementById('themeToggleBtn').textContent = t === 'dark' ? '☀️' : '🌙';
+}
+
+function toggleTheme() {
+  setTheme(STORE.theme === 'light' ? 'dark' : 'light');
+}
+
+function saveThemeSettings() {
+  STORE.autoTheme = document.getElementById('autoTheme').checked;
+  STORE.lightFrom = document.getElementById('lightFrom')?.value || '06:00';
+  STORE.darkFrom  = document.getElementById('darkFrom')?.value  || '18:00';
+  document.getElementById('autoThemeOptions').style.display = STORE.autoTheme ? 'block' : 'none';
+  showToast('🎨 Theme settings updated!');
+}
+
+function startAutoTheme() {
+  checkAutoTheme();
+  setInterval(checkAutoTheme, 60000);
+}
+
+function checkAutoTheme() {
+  if (!STORE.autoTheme) return;
+  const now = new Date();
+  const cur  = now.getHours()*60 + now.getMinutes();
+  const lf   = timeToMins(STORE.lightFrom);
+  const df   = timeToMins(STORE.darkFrom);
+  const isDark = df > lf ? (cur>=df || cur<lf) : (cur>=df && cur<lf);
+  setTheme(isDark ? 'dark' : 'light');
+}
+
+function timeToMins(t) {
+  const [h,m] = (t || '06:00').split(':').map(Number);
+  return h * 60 + m;
+}
+
+// ═══════════════════════════════════════════════════
+//  HELPER UTILITIES
+// ═══════════════════════════════════════════════════
+function setDate() {
+  document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function openWA() {
+  window.open('https://wa.me/' + STORE.settings.waNumber.replace(/\D/g,''), '_blank');
+}
+
+function toggleSidebar() {
+  const s = document.getElementById('sidebar');
+  const o = document.getElementById('sideOverlay');
+  s.classList.toggle('open');
+  o.style.display = s.classList.contains('open') ? 'block' : 'none';
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sideOverlay').style.display = 'none';
+}
+
+function escapeHTML(str) {
+  if (!str) return '';
+  return str.replace(/[&<>'"]/g, 
+    tag => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      "'": '&#39;',
+      '"': '&quot;'
+    }[tag] || tag)
+  );
+}
+
+// Global modal exit handlers
+['productModal', 'customerModal', 'invoiceModal'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener('click', function(e) {
+      if (e.target === this) closeModal(id);
+    });
+  }
+});
+
+// Initialization
+document.addEventListener('DOMContentLoaded', () => {
+  setDate();
+  checkAuth();
+  enableKeyboardClickables();
+});
+
+// Accessibility bindings
+function enableKeyboardClickables() {
+  document.querySelectorAll('[onclick]').forEach(el => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'BUTTON' && el.tagName !== 'A' && el.tagName !== 'INPUT' && el.tagName !== 'SELECT' && el.tagName !== 'TEXTAREA') {
+      el.setAttribute('tabindex', '0');
+    }
+    if (!el.dataset.kbdBound) {
+      el.dataset.kbdBound = 'true';
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          el.click();
+        }
+      });
+    }
+  });
+}
+const observer = new MutationObserver(() => {
+  enableKeyboardClickables();
+});
+observer.observe(document.body, { childList: true, subtree: true });
+</script>
+</body>
+</html>

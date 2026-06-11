@@ -1,0 +1,31 @@
+
+[project]
+name = "pure-weaves"
+version = "1.0.0"
+description = "Handcrafted with Love - Pure Weaves e-commerce backend"
+requires-python = ">=3.12"
+dependencies = [
+    "flask==3.0.0",
+    "flask-sqlalchemy==3.1.1",
+    "flask-bcrypt==1.0.1",
+    "flask-cors==4.0.0",
+    "flask-login==0.6.3",
+    "flask-migrate==4.1.0",
+    "pymysql==1.1.0",
+    "pyjwt==2.8.0",
+    "python-dotenv==1.0.0",
+    "email-validator==2.3.0",
+    "fpdf2==2.8.7",
+    "openpyxl==3.1.5",
+    "sqlalchemy==2.0.50",
+    "alembic==1.18.4",
+]
+
+[tool.basilisk.rules]
+BSK-E0013 = "off"
+BSK-PARSE = "off"
+BSK-E0031 = "off"
+BSK-E0025 = "off"
+BSK-E0011 = "off"
+BSK-E0014 = "off"
+missing-import = "off"

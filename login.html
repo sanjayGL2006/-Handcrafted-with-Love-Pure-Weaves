@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pure Weaves – Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+
+<!-- ✅ Firebase SDK v10 (Compat mode - easier to use) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+<style>
+:root {
+  --maroon:#7B1A2E; --gold:#C9A84C; --cream:#FDF6EC; --deep:#2A0A12;
+  --soft:#F5E6D3; --text:#3A1A22; --muted:#8A6A70; --white:#FFFFFF;
+  --border:#E8CFA8; --green:#25D366; --red:#C0392B;
+  --shadow:rgba(123,26,46,0.18); --radius:14px; --transition:0.22s ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Lato',sans-serif; min-height:100vh;
+  background:linear-gradient(135deg,var(--deep) 0%,var(--maroon) 50%,#A0263C 100%);
+  display:flex; align-items:center; justify-content:center;
+  padding:1.5rem; position:relative; overflow:hidden;
+}
+body::before{
+  content:''; position:fixed; inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23C9A84C' fill-opacity='0.06'%3E%3Cpath d='M50 50v-8h-4v8h-8v4h8v8h4v-8h8v-4h-8zm0-42V0h-4v8h-8v4h8v8h4V12h8V8h-8zM8 50v-8H4v8H0v4h4v8h4v-8h8v-4H8zM8 8V0H4v8H0v4h4v8h4V12h8V8H8z'/%3E%3C/g%3E%3C/svg%3E");
+  pointer-events:none; z-index:0;
+}
+.deco-circle{position:fixed;border-radius:50%;background:rgba(201,168,76,0.08);pointer-events:none;z-index:0;}
+.deco-1{width:300px;height:300px;top:-100px;right:-80px;}
+.deco-2{width:200px;height:200px;bottom:-60px;left:-60px;}
+
+/* ── LOGIN CARD ─────────────────────────────── */
+.login-card{
+  background:var(--white); border-radius:var(--radius);
+  width:100%; max-width:440px;
+  box-shadow:0 24px 70px rgba(0,0,0,0.35);
+  position:relative; z-index:1; overflow:hidden;
+  animation:slideUp 0.4s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+.card-header{
+  background:linear-gradient(135deg,var(--deep),var(--maroon));
+  padding:2rem 2rem 1.5rem; text-align:center;
+  position:relative; overflow:hidden;
+}
+.card-header::after{
+  content:''; position:absolute; bottom:-1px; left:0; right:0;
+  height:20px; background:var(--white);
+  border-radius:50% 50% 0 0/20px 20px 0 0;
+}
+.brand-ornament{font-size:11px;letter-spacing:3px;color:rgba(201,168,76,0.8);text-transform:uppercase;margin-bottom:0.4rem;}
+.brand-name{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:var(--white);letter-spacing:1px;}
+.brand-name span{color:var(--gold);}
+.brand-sub{font-size:12px;color:rgba(255,255,255,0.65);margin-top:4px;font-weight:300;}
+.gold-line{width:50px;height:1.5px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:10px auto 0;}
+
+/* ── CARD BODY ──────────────────────────────── */
+.card-body{padding:1.5rem 2rem 2rem;}
+
+/* ── TABS ────────────────────────────────────── */
+.tabs{display:flex;background:var(--soft);border-radius:99px;padding:4px;margin-bottom:1.5rem;gap:4px;}
+.tab-btn{
+  flex:1;padding:9px 12px;border:none;background:transparent;
+  border-radius:99px;font-size:13px;font-family:'Lato',sans-serif;
+  cursor:pointer;color:var(--muted);font-weight:400;transition:var(--transition);
+  display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.tab-btn.active{background:var(--white);color:var(--maroon);font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+
+/* ── PANELS ──────────────────────────────────── */
+.panel{display:none;animation:fadeIn 0.25s ease;}
+.panel.active{display:block;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── FORM ────────────────────────────────────── */
+.form-group{margin-bottom:1rem;}
+.form-label{display:block;font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.3px;}
+.input-wrap{position:relative;display:flex;align-items:center;}
+.input-icon{position:absolute;left:12px;font-size:16px;pointer-events:none;z-index:1;}
+.form-input{
+  width:100%;padding:11px 14px 11px 38px;
+  border:1.5px solid var(--border);border-radius:9px;
+  font-size:14px;color:var(--text);background:var(--cream);
+  font-family:'Lato',sans-serif;transition:var(--transition);outline:none;
+}
+.form-input:focus{border-color:var(--maroon);background:var(--white);box-shadow:0 0 0 3px rgba(123,26,46,0.08);}
+.form-input.error{border-color:var(--red);}
+.mobile-prefix{position:absolute;left:38px;font-size:14px;color:var(--muted);font-weight:700;pointer-events:none;z-index:1;}
+.form-input.with-prefix{padding-left:72px;}
+
+/* ── PROGRESS STEPS ──────────────────────────── */
+.progress-steps{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:1.25rem;}
+.step-dot{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  background:var(--soft);color:var(--muted);
+  border:1.5px solid var(--border);transition:var(--transition);
+}
+.step-dot.active{background:var(--maroon);color:var(--white);border-color:var(--maroon);}
+.step-dot.done{background:#27ae60;color:var(--white);border-color:#27ae60;}
+.step-line{height:1.5px;width:40px;background:var(--border);transition:var(--transition);}
+.step-line.done{background:#27ae60;}
+
+/* ── BUTTONS ─────────────────────────────────── */
+.btn{
+  width:100%;padding:13px;border:none;border-radius:9px;
+  font-size:14px;font-weight:700;cursor:pointer;
+  font-family:'Lato',sans-serif;transition:var(--transition);
+  letter-spacing:0.3px;display:flex;align-items:center;
+  justify-content:center;gap:8px;position:relative;overflow:hidden;
+}
+.btn-maroon{background:linear-gradient(135deg,var(--maroon),#9B2235);color:var(--white);box-shadow:0 4px 15px rgba(123,26,46,0.3);}
+.btn-maroon:hover{box-shadow:0 6px 20px rgba(123,26,46,0.4);}
+.btn-maroon:disabled{background:#ccc;color:#999;box-shadow:none;cursor:not-allowed;}
+.btn-google{background:var(--white);color:var(--text);border:1.5px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+.btn-google:hover{border-color:#4285F4;box-shadow:0 4px 15px rgba(66,133,244,0.15);}
+.btn-outline{background:transparent;color:var(--maroon);border:1.5px solid var(--maroon);margin-top:8px;}
+.btn-outline:hover{background:var(--soft);}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;display:none;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── MESSAGES ────────────────────────────────── */
+.msg-box{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:1rem;display:none;align-items:center;gap:8px;line-height:1.4;}
+.msg-box.show{display:flex;}
+.msg-error{background:#FDEDEC;color:var(--red);border:1px solid #F5B7B1;}
+.msg-success{background:#EAFAF1;color:#1E8449;border:1px solid #A9DFBF;}
+.msg-info{background:#EBF5FB;color:#1A5276;border:1px solid #AED6F1;}
+
+/* ── DIVIDER ─────────────────────────────────── */
+.divider{display:flex;align-items:center;gap:12px;margin:1.25rem 0;color:var(--muted);font-size:12px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ── TERMS ───────────────────────────────────── */
+.terms{font-size:11px;color:var(--muted);text-align:center;margin-top:1rem;line-height:1.6;}
+.terms a{color:var(--maroon);text-decoration:underline;cursor:pointer;}
+
+/* ── SECURITY STRIP ──────────────────────────── */
+.security-strip{display:flex;justify-content:center;gap:16px;padding:12px 2rem;background:var(--soft);border-top:1px solid var(--border);}
+.sec-badge{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px;}
+
+/* ── SUCCESS SCREEN ──────────────────────────── */
+.success-screen{text-align:center;padding:1rem 0;display:none;}
+.success-screen.show{display:block;}
+.success-icon{font-size:56px;margin-bottom:1rem;animation:bounce 0.5s ease;}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.success-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--maroon);margin-bottom:0.5rem;}
+.success-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem;}
+.redirect-bar{height:4px;background:var(--soft);border-radius:99px;overflow:hidden;margin-bottom:0.75rem;}
+.redirect-fill{height:100%;background:linear-gradient(90deg,var(--maroon),var(--gold));border-radius:99px;width:0%;transition:width 3s linear;}
+
+/* ── FIREBASE STATUS ─────────────────────────── */
+.firebase-badge{
+  display:flex;align-items:center;gap:6px;
+  background:#E8F5E9;border:1px solid #A5D6A7;
+  border-radius:7px;padding:6px 12px;
+  font-size:12px;color:#2E7D32;
+  margin-bottom:1rem;justify-content:center;
+}
+.firebase-badge.connecting{background:#FFF8E1;border-color:#FFD54F;color:#F57F17;}
+.firebase-badge.error{background:#FDEDEC;border-color:#F5B7B1;color:var(--red);}
+
+@media(max-width:480px){
+  .card-body{padding:1.25rem 1.5rem 1.5rem;}
+  .card-header{padding:1.5rem 1.5rem 1.25rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- If user opened page via file://, redirect to local dev server to avoid CORS issues -->
+<script>
+  const protocol = window.location.protocol || '';
+  const isFilePage = protocol === 'file:';
+  const isChromeErrorPage = protocol.indexOf('chrome-error') === 0;
+
+  if (isFilePage && !isChromeErrorPage) {
+    try {
+      const filename = (window.location.pathname || '').split('/').pop() || 'login.html';
+      const target = 'http://127.0.0.1:5000/' + filename + window.location.search + window.location.hash;
+      window.location.href = target;
+    } catch (e) {
+      console.warn('Redirect to local server failed', e);
+    }
+  } else if (isChromeErrorPage || window.location.origin === 'null') {
+    console.warn('Open this page directly via http://127.0.0.1:5000/login.html instead of using the browser file preview or a chrome-error page.');
+  }
+</script>
+
+<div class="deco-circle deco-1"></div>
+<div class="deco-circle deco-2"></div>
+
+<div class="login-card">
+
+  <!-- HEADER -->
+  <div class="card-header">
+    <div class="brand-ornament">✦ Welcome to ✦</div>
+    <div class="brand-name">Pure <span>Weaves</span></div>
+    <div class="brand-sub">Saree Kuchu & Bunches · Shivamogga, Karnataka</div>
+    <div class="gold-line"></div>
+  </div>
+
+  <!-- BODY -->
+  <div class="card-body">
+
+    <!-- Firebase Status -->
+    <div class="firebase-badge connecting" id="firebaseBadge">
+      ⏳ Connecting to Firebase...
+    </div>
+
+    <!-- Success Screen -->
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">Login Successful!</div>
+      <div class="success-sub" id="successMsg">Welcome to Pure Weaves</div>
+      <div class="redirect-bar"><div class="redirect-fill" id="redirectFill"></div></div>
+      <p style="font-size:12px;color:var(--muted);">Redirecting to catalog...</p>
+    </div>
+
+    <!-- Login Content -->
+    <div id="loginContent">
+      <div class="tabs" style="margin-bottom:14px;">
+        <button class="tab-btn active" id="tab-google" onclick="switchTab('google', this)">Google</button>
+        <button class="tab-btn" id="tab-email" onclick="switchTab('email', this)">Email / Password</button>
+      </div>
+
+      <div class="panel active" id="panel-google">
+        <div class="msg-box msg-info show" style="margin-bottom:1.25rem;">
+          <span>🔒</span>
+          <span>Sign in securely with your Google account. We only access your name and email.</span>
+        </div>
+
+        <div class="msg-box msg-error" id="googleError">
+          <span>⚠️</span><span id="googleErrorText"></span>
+        </div>
+
+        <button class="btn btn-google" id="googleBtn" onclick="signInWithGoogle()">
+          <svg width="20" height="20" viewBox="0 0 48 48">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.29-8.16 2.29-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <div style="margin-top:1rem;background:var(--soft);border-radius:9px;padding:12px 14px;">
+          <p style="font-size:12px;color:var(--muted);line-height:1.7;">
+            ✅ <strong>100% Free</strong> — No charges ever<br/>
+            ✅ <strong>Secure</strong> — Google's own security<br/>
+            ✅ <strong>Fast</strong> — Login in 2 seconds<br/>
+            ✅ <strong>No password</strong> — Just click and sign in
+          </p>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-email">
+        <div class="msg-box msg-error" id="emailError"><span>⚠️</span><span id="emailErrorText"></span></div>
+
+        <div class="form-group">
+          <label class="form-label" for="nameInput">Username</label>
+          <div class="input-wrap">
+            <input id="nameInput" class="form-input" placeholder="Your username" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="emailInput">Gmail</label>
+          <div class="input-wrap">
+            <input id="emailInput" type="email" class="form-input" placeholder="you@gmail.com" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="passwordInput">Password</label>
+          <div class="input-wrap">
+            <input id="passwordInput" type="password" class="form-input" placeholder="Choose a secure password" />
+          </div>
+        </div>
+
+        <button class="btn btn-maroon" id="emailLoginBtn" onclick="loginWithEmail()">Login</button>
+        <button class="btn btn-outline" style="margin-top:10px;" id="emailRegisterBtn" onclick="window.location.href='register.html'">Create account</button>
+      </div>
+
+      <div class="divider">or</div>
+      <p class="terms">
+        By logging in you agree to our
+        <a onclick="alert('Your data is safe and never shared with anyone.')">Privacy Policy</a> &amp;
+        <a onclick="alert('All orders confirmed via WhatsApp. Contact us for any issues.')">Terms of Use</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Security Strip -->
+  <div class="security-strip">
+    <div class="sec-badge">🔒 Firebase SSL</div>
+    <div class="sec-badge">🔵 Google Auth</div>
+    <div class="sec-badge">✅ Free Forever</div>
+  </div>
+
+</div><!-- /login-card -->
+
+<script>
+// ═══════════════════════════════════════════════════
+//  🔥 FIREBASE CONFIG
+//  ⚠️  REPLACE THESE VALUES WITH YOUR FIREBASE CONFIG!
+//  Go to: Firebase Console → Project Settings → Your Apps
+// ═══════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyDmOa347HhJMy3R47x8yOI0cRnnwcpZjKo",
+  authDomain: "pureweaves-63804.firebaseapp.com",
+  projectId: "pureweaves-63804",
+  storageBucket: "pureweaves-63804.firebasestorage.app",
+  messagingSenderId: "228901281336",
+  appId: "1:228901281336:web:a22ea5606468247d5fd0cd"
+};
+
+// ── CONFIG ────────────────────────────────────────
+const CONFIG = {
+  REDIRECT_URL: 'index.html'
+};
+
+// ── STATE ─────────────────────────────────────────
+let firebaseReady = false;
+let auth = null;
+let confirmationResult = null;
+
+// ── INIT FIREBASE ─────────────────────────────────
+function initFirebase() {
+  const badge = document.getElementById('firebaseBadge');
+  try {
+    firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let needFirebaseLogout = urlParams.get('logout') === 'true' || localStorage.getItem('firebase_logout_pending') === '1' || localStorage.getItem('explicit_logout') === '1';
+
+    if (needFirebaseLogout && auth) {
+      localStorage.removeItem('firebase_logout_pending');
+      auth.signOut().then(() => {
+        console.log("Firebase signed out successfully because of pending logout flag.");
+        needFirebaseLogout = false;
+        if (window.history.replaceState) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }).catch(e => console.error("Firebase sign out error:", e));
+    }
+
+    // Check if user already logged in
+    auth.onAuthStateChanged(user => {
+      const isExplicitLogout = localStorage.getItem('explicit_logout') === '1';
+      if (!user || needFirebaseLogout || isExplicitLogout) {
+        if (user && isExplicitLogout) {
+          console.log("Firebase user detected but explicit_logout is set. Signing out Firebase...");
+          auth.signOut().catch(e => console.error("Signout error:", e));
+        }
+        return;
+      }
+
+      let savedState = {};
+      try {
+        savedState = JSON.parse(localStorage.getItem('pureweaves_state') || '{}');
+      } catch (e) {
+        savedState = {};
+      }
+
+      if (savedState.user && savedState.user.email === user.email) {
+        showSuccess('Welcome back, ' + (savedState.user.name || user.displayName || 'Customer') + '!');
+        return;
+      }
+
+      // User is signed in by Firebase, but frontend state may not be restored yet.
+      // Exchange with backend to create a fresh session state and avoid redirect loops.
+      fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ google_id: user.uid, email: user.email, name: user.displayName || 'Google User' })
+      }).then(r => r.json().then(data => ({ ok: r.ok, data })))
+      .then(resp => {
+        if (resp.ok) {
+          saveAndLogin(resp.data.user, resp.data.token);
+        } else {
+          saveAndLogin({ name: user.displayName || 'Google User', email: user.email, id: user.uid, loginType: 'google' }, null);
+        }
+      }).catch(() => {
+        saveAndLogin({ name: user.displayName || 'Google User', email: user.email, id: user.uid, loginType: 'google' }, null);
+      });
+    });
+
+    if (window.location.protocol === 'file:') {
+      badge.className = 'firebase-badge error';
+      badge.innerHTML = '⚠️ Firebase OAuth will not work from file:// URLs. Serve the page over http://localhost.';
+      document.getElementById('googleBtn').disabled = true;
+      return;
+    }
+
+    firebaseReady = true;
+    badge.className = 'firebase-badge';
+    badge.innerHTML = '✅ Firebase Connected — Secure Login Ready';
+    setTimeout(() => badge.style.display='none', 3000);
+
+  } catch(e) {
+    badge.className = 'firebase-badge error';
+    badge.innerHTML = '⚠️ Firebase not configured — Using Demo Mode';
+    console.warn('Firebase not configured:', e.message);
+    // Fall back to demo mode
+    setTimeout(() => badge.style.display='none', 4000);
+  }
+}
+
+// ── TAB SWITCHER ─────────────────────────────────
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+// ── GOOGLE SIGN IN ────────────────────────────────
+function signInWithGoogle() {
+  try {
+    localStorage.removeItem('explicit_logout');
+  } catch (e) {}
+  const btn = document.getElementById('googleBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div style="width:18px;height:18px;border:2px solid rgba(0,0,0,0.2);border-top-color:#4285F4;border-radius:50%;animation:spin 0.7s linear infinite;"></div> Connecting to Google...';
+
+  if (firebaseReady && auth) {
+    // ✅ Real Firebase Google Login
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('email');
+    provider.addScope('profile');
+
+    auth.signInWithPopup(provider)
+      .then(result => {
+        const user = result.user;
+        // Exchange Firebase user for backend JWT
+        fetch('/api/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ google_id: user.uid, email: user.email, name: user.displayName })
+        }).then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(resp => {
+          if (resp.ok) {
+            saveAndLogin(resp.data.user, resp.data.token);
+          } else {
+            // fallback: store client info without server token
+            saveAndLogin({ name: user.displayName || 'Google User', email: user.email, id: user.uid, loginType: 'google' }, null);
+          }
+        }).catch(e => {
+          saveAndLogin({ name: user.displayName || 'Google User', email: user.email, id: user.uid, loginType: 'google' }, null);
+        });
+      })
+      .catch(error => {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.29-8.16 2.29-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google`;
+        if (error.code === 'auth/unauthorized-domain') {
+          showUnauthorizedDomainHint();
+        } else if (error.code !== 'auth/popup-closed-by-user') {
+          document.getElementById('googleError').classList.add('show');
+          document.getElementById('googleErrorText').textContent = 'Google login failed: ' + error.message;
+        }
+      });
+  } else {
+    // Demo Google login
+    setTimeout(() => {
+      // demo fallback - no backend token
+      saveAndLogin({ name: 'Google User', email: 'user@gmail.com', id: 'google_' + Date.now(), loginType: 'google' }, null);
+    }, 1500);
+  }
+}
+
+// ── SAVE USER & LOGIN ─────────────────────────────
+function saveAndLogin(user, token) {
+  try {
+    let state = {};
+    try { state = JSON.parse(localStorage.getItem('pureweaves_state') || '{}'); } catch(e) {}
+    state.user = user;
+    if (token) state.token = token;
+    // Track in customers list for admin
+    if (!state.customers) state.customers = [];
+    const exists = state.customers.find(c => c.id === user.id || (c.mobile && c.mobile === user.mobile));
+    if (!exists) {
+      state.customers.unshift({
+        ...user,
+        joined: new Date().toLocaleDateString('en-IN'),
+        lastLogin: new Date().toLocaleString('en-IN')
+      });
+      if (state.customers.length > 200) state.customers = state.customers.slice(0, 200);
+    }
+    localStorage.setItem('pureweaves_state', JSON.stringify(state));
+  } catch(e) {}
+  showSuccess('Welcome, ' + user.name + '! 🙏');
+}
+
+// ── SHOW SUCCESS ──────────────────────────────────
+function showSuccess(msg) {
+  document.getElementById('loginContent').style.display = 'none';
+  document.getElementById('firebaseBadge').style.display = 'none';
+  const screen = document.getElementById('successScreen');
+  document.getElementById('successMsg').textContent = msg;
+  screen.classList.add('show');
+  setTimeout(() => { document.getElementById('redirectFill').style.width = '100%'; }, 100);
+  setTimeout(() => {
+    try { sessionStorage.setItem('pureweaves_just_logged_in', '1'); } catch(e) {}
+    const origin = (window.location.protocol === 'http:' || window.location.protocol === 'https:') ? window.location.origin : 'http://127.0.0.1:5000';
+    window.location.href = origin + '/' + CONFIG.REDIRECT_URL.replace(/^\//, '');
+  }, 3200);
+}
+
+// ── HELPERS ─────────────────────────────────────
+
+
+// ── HELPERS ───────────────────────────────────────
+function setLoading(btnId, textId, spinnerId, loading, text) {
+  document.getElementById(btnId).disabled = loading;
+  document.getElementById(textId).textContent = text;
+  document.getElementById(spinnerId).style.display = loading ? 'block' : 'none';
+}
+
+function isFileProtocol() {
+  return window.location.protocol === 'file:';
+}
+
+const API_BASE = isFileProtocol() ? 'http://127.0.0.1:5000' : window.location.origin;
+
+function showUnauthorizedDomainHint() {
+  const errorBox = document.getElementById('googleError');
+  const errorText = document.getElementById('googleErrorText');
+  errorBox.classList.add('show');
+  errorText.textContent = isFileProtocol()
+    ? 'Firebase OAuth cannot run from file:// URLs. Serve the page over http://localhost and add localhost to Firebase authorized domains.'
+    : 'Unauthorized domain. Add this site to Firebase Auth authorized domains and retry.';
+}
+
+// ── EMAIL/PASSWORD AUTH (calls backend) ─────────────────
+function _showEmailError(msg) {
+  const box = document.getElementById('emailError');
+  const txt = document.getElementById('emailErrorText');
+  txt.textContent = msg || 'Login failed';
+  box.classList.add('show');
+}
+
+function _clearEmailError() {
+  const box = document.getElementById('emailError');
+  box.classList.remove('show');
+}
+
+function setBtnState(btnId, disabled, text) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = disabled;
+  if (text) btn.textContent = text;
+}
+
+function loginWithEmail() {
+  try {
+    localStorage.removeItem('explicit_logout');
+  } catch (e) {}
+  _clearEmailError();
+  const email = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passwordInput').value || '';
+  if (!email || !password) return _showEmailError('Please enter email and password');
+  setBtnState('emailLoginBtn', true, 'Signing in...');
+  fetch(API_BASE + '/api/auth/login', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ email, password })
+  }).then(r => r.json().then(data => ({ ok: r.ok, data })))
+    .then(resp => {
+      setBtnState('emailLoginBtn', false, 'Login');
+      if (resp.ok) {
+        saveAndLogin(resp.data.user, resp.data.token);
+      } else {
+        _showEmailError(resp.data && resp.data.error ? resp.data.error : 'Login failed');
+      }
+    }).catch(err => {
+      setBtnState('emailLoginBtn', false, 'Login');
+      _showEmailError('Network error');
+    });
+}
+
+function registerWithEmail() {
+  _clearEmailError();
+  const name = document.getElementById('nameInput').value.trim();
+  const email = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passwordInput').value || '';
+  if (!name || !email || !password) return _showEmailError('Name, email and password required');
+  setBtnState('emailRegisterBtn', true, 'Creating...');
+  fetch(API_BASE + '/api/auth/register', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ name, email, password, confirm_password: password })
+  }).then(r => r.json().then(data => ({ ok: r.ok, data })))
+    .then(resp => {
+      setBtnState('emailRegisterBtn', false, 'Create account');
+      if (resp.ok) {
+        saveAndLogin(resp.data.user, resp.data.token);
+      } else {
+        _showEmailError(resp.data && resp.data.error ? resp.data.error : 'Registration failed');
+      }
+    }).catch(err => {
+      setBtnState('emailRegisterBtn', false, 'Create account');
+      _showEmailError('Network error');
+    });
+}
+
+// ── START ─────────────────────────────────────────
+initFirebase();
+</script>
+</body>
+</html>
