@@ -18,7 +18,7 @@ from flask_cors import CORS  # type: ignore
 from functools import wraps
 from typing import Any, Callable, Union, Tuple, Dict, List
 import random, datetime, os, jwt, time, io
-import invoice_generator
+# invoice_generator is lazily imported inside handlers to avoid import-time failures in serverless environments
 
 RouteResponse = Union[Response, Tuple[Response, int]]
 
@@ -1148,7 +1148,12 @@ def get_bill_pdf(bill_id: int) -> None:
         'address': bill.customer.address
     }
     
-    pdf_bytes = invoice_generator.generate_pdf_invoice(
+    try:
+        from invoice_generator import generate_pdf_invoice
+    except Exception as _e:
+        return jsonify({'error':'Invoice generation dependency error','detail':str(_e)}),500
+
+    pdf_bytes = generate_pdf_invoice(
         invoice_no=bill.invoice_number,
         date=bill.created_at.strftime('%d-%m-%Y'),
         customer=customer,
@@ -1184,7 +1189,12 @@ def get_bill_docx(bill_id: int) -> None:
         'address': bill.customer.address
     }
     
-    docx_bytes = invoice_generator.generate_docx_invoice(
+    try:
+        from invoice_generator import generate_docx_invoice
+    except Exception as _e:
+        return jsonify({'error':'Invoice generation dependency error','detail':str(_e)}),500
+
+    docx_bytes = generate_docx_invoice(
         invoice_no=bill.invoice_number,
         date=bill.created_at.strftime('%d-%m-%Y'),
         customer=customer,
@@ -1199,6 +1209,21 @@ def get_bill_docx(bill_id: int) -> None:
     response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     response.headers['Content-Disposition'] = f'attachment; filename=Invoice_{bill.invoice_number}.docx'
     return response
+
+
+# Health check and improved error handling
+
+@app.route('/api/_health', methods=['GET'])
+def _health_check() -> RouteResponse:
+    return jsonify({'status':'ok'}), 200
+
+
+@app.errorhandler(Exception)
+def _handle_global_error(e: Exception):
+    # Log to stdout so Vercel captures the stacktrace in logs
+    import traceback, sys
+    traceback.print_exc(file=sys.stdout)
+    return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
 
 
 # ─── REPORTS & ANALYTICS ROUTES ────────────────────────────────
