@@ -300,6 +300,7 @@ tr:hover td { background:rgba(201,168,76,0.04); }
     <div class="nav-item" onclick="showPage('designs',this)"><span class="nav-icon">🪡</span>Products</div>
     <div class="nav-item" onclick="showPage('customers',this)"><span class="nav-icon">👥</span>Customers</div>
     <div class="nav-item" onclick="showPage('billing',this)"><span class="nav-icon">🧾</span>Billing</div>
+    <div class="nav-item" onclick="showPage('orders',this)"><span class="nav-icon">📦</span>Web Orders</div>
     <div class="nav-item" onclick="showPage('reviews',this)"><span class="nav-icon">⭐</span>Reviews</div>
     <div class="nav-item" onclick="showPage('reports',this)"><span class="nav-icon">📋</span>Reports</div>
   </div>
@@ -537,16 +538,6 @@ tr:hover td { background:rgba(201,168,76,0.04); }
                 <input class="form-input" id="billCustMobile" placeholder="9876543210" />
               </div>
             </div>
-            <div class="row g-2 mb-3">
-              <div class="col-md-6 form-group">
-                <label class="form-label" for="billCustEmail">Email Address</label>
-                <input class="form-input" id="billCustEmail" placeholder="customer@mail.com" />
-              </div>
-              <div class="col-md-6 form-group">
-                <label class="form-label" for="billCustAddress">Delivery Address</label>
-                <input class="form-input" id="billCustAddress" placeholder="Shivamogga, Karnataka" />
-              </div>
-            </div>
 
             <!-- Step 2: Item Selection -->
             <h5 class="border-bottom pb-2 mb-3 text-secondary" style="font-size: 14px; font-weight: 700; margin-top: 1.5rem;">2. PRODUCT SELECTION</h5>
@@ -685,6 +676,44 @@ tr:hover td { background:rgba(201,168,76,0.04); }
             <tbody id="reviewsTableBody">
               <tr>
                 <td colspan="7" class="text-center py-4"><span class="loading-spinner"></span> Loading feedback...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ WEB ORDERS ═══════ -->
+    <div class="page" id="page-orders">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">📦 Web Orders Directory</div>
+          <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" id="orderStatusFilter" onchange="loadOrders()" style="width: auto;">
+              <option value="all">All Orders</option>
+              <option value="pending">Pending</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Mobile</th>
+                <th>Items Ordered</th>
+                <th>Total (INR)</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody">
+              <tr>
+                <td colspan="8" class="text-center py-4"><span class="loading-spinner"></span> Loading web orders...</td>
               </tr>
             </tbody>
           </table>
@@ -1083,6 +1112,7 @@ let STORE = {
   reviews: [],
   coupons: [],
   bills: [],
+  orders: [],
   settings: {
     shopName: 'Pure Weaves',
     waNumber: '+91 8088744654',
@@ -1166,13 +1196,15 @@ function fetchBackendData() {
     fetch('/api/admin/customers', { headers }).then(r => r.json()),
     fetch('/api/admin/reviews', { headers }).then(r => r.json()),
     fetch('/api/admin/reports', { headers }).then(r => r.json()),
-    fetch('/api/admin/coupons', { headers }).then(r => r.json())
+    fetch('/api/admin/coupons', { headers }).then(r => r.json()),
+    fetch('/api/admin/orders', { headers }).then(r => r.json())
   ])
-  .then(([products, customers, reviews, reports, coupons]) => {
+  .then(([products, customers, reviews, reports, coupons, orders]) => {
     STORE.products = Array.isArray(products) ? products : [];
     STORE.customers = Array.isArray(customers) ? customers : [];
     STORE.reviews = Array.isArray(reviews) ? reviews : [];
     STORE.coupons = Array.isArray(coupons) ? coupons : [];
+    STORE.orders = Array.isArray(orders) ? orders : [];
 
     // Render Stats
     const analytics = reports.analytics || {};
@@ -1181,6 +1213,23 @@ function fetchBackendData() {
     document.getElementById('statRevenue').textContent = '₹' + (analytics.total_revenue || 0).toFixed(2);
     document.getElementById('statReviews').textContent = analytics.total_reviews || STORE.reviews.length;
     document.getElementById('statProducts').textContent = analytics.total_products || STORE.products.length;
+
+    // Render pending orders count badge on notification bell
+    const pendingOrdersCount = STORE.orders.filter(o => o.status === 'pending').length;
+    const notifDot = document.getElementById('notifDot');
+    if (notifDot) {
+      if (pendingOrdersCount > 0) {
+        notifDot.style.display = 'block';
+        notifDot.textContent = pendingOrdersCount;
+        notifDot.className = 'notif-dot badge bg-danger text-white position-absolute';
+        notifDot.style.top = '-5px';
+        notifDot.style.right = '-5px';
+        notifDot.style.fontSize = '9px';
+        notifDot.style.padding = '3px 5px';
+      } else {
+        notifDot.style.display = 'none';
+      }
+    }
 
     // Chart.js Graph
     renderDashboardChart(reports);
@@ -1196,6 +1245,7 @@ function fetchBackendData() {
     loadReviews();
     loadReports(reports);
     loadCoupons();
+    loadOrders();
   })
   .catch(err => {
     console.error('Failed to sync backend:', err);
@@ -1204,7 +1254,7 @@ function fetchBackendData() {
 }
 
 function checkLowStock(products) {
-  const lowStock = products.filter(p => p.quantity < 5);
+  const lowStock = products.filter(p => p.stock < 5);
   const banner = document.getElementById('lowStockBanner');
   const tbody = document.getElementById('lowStockTableBody');
 
@@ -1215,7 +1265,7 @@ function checkLowStock(products) {
         <td style="font-weight: 700; color: var(--maroon);">${escapeHTML(p.code)}</td>
         <td>${escapeHTML(p.name)}</td>
         <td><span class="badge badge-gray">${escapeHTML(p.category)}</span></td>
-        <td><strong class="text-danger">${p.quantity}</strong></td>
+        <td><strong class="text-danger">${p.stock}</strong></td>
         <td><button class="btn btn-outline btn-sm" onclick="showEditProductModal(${p.id})">Restock</button></td>
       </tr>
     `).join('');
@@ -1274,7 +1324,7 @@ function loadProducts() {
   }
 
   tbody.innerHTML = filtered.map(p => {
-    const isLow = p.quantity < 5;
+    const isLow = p.stock < 5;
     return `
       <tr class="${isLow ? 'table-warning' : ''}" style="${isLow ? 'border-left: 4px solid var(--red);' : ''}">
         <td><strong style="color: var(--maroon);">${escapeHTML(p.code)}</strong></td>
@@ -1287,7 +1337,7 @@ function loadProducts() {
         <td>₹${p.price_min.toFixed(2)}</td>
         <td>
           <span class="badge ${isLow ? 'bg-danger text-white' : 'badge-green'}">
-            ${p.quantity} items ${isLow ? '⚠️ Low' : ''}
+            ${p.stock} items ${isLow ? '⚠️ Low' : ''}
           </span>
         </td>
         <td><span class="badge ${p.is_active ? 'badge-green' : 'badge-gray'}">${p.is_active ? 'Active' : 'Inactive'}</span></td>
@@ -1325,7 +1375,7 @@ function showEditProductModal(id) {
   document.getElementById('prodModalCat').value = p.category || 'Kuchu';
   document.getElementById('prodModalStatus').value = p.is_active ? 'active' : 'inactive';
   document.getElementById('prodModalPrice').value = p.price_min;
-  document.getElementById('prodModalStock').value = p.quantity;
+  document.getElementById('prodModalStock').value = p.stock;
   document.getElementById('prodModalDesc').value = p.description || '';
   document.getElementById('prodModalImg').value = p.image_path || '';
   document.getElementById('prodModalDeleteBtn').classList.remove('d-none');
@@ -1350,7 +1400,7 @@ function saveProductFromModal() {
     return;
   }
 
-  const payload = { code, name, category, is_active: status, price_min: price, quantity, description, image_path };
+  const payload = { code, name, category, is_active: status, price_min: price, stock: quantity, quantity, description, image_path };
   const headers = {
     'Content-Type': 'application/json',
     'X-Admin-Secret': adminSecretHeader
@@ -1520,8 +1570,6 @@ function autoPopulateCustomer() {
   if (!val) {
     document.getElementById('billCustName').value = '';
     document.getElementById('billCustMobile').value = '';
-    document.getElementById('billCustEmail').value = '';
-    document.getElementById('billCustAddress').value = '';
     return;
   }
 
@@ -1529,8 +1577,6 @@ function autoPopulateCustomer() {
   if (cust) {
     document.getElementById('billCustName').value = cust.name || '';
     document.getElementById('billCustMobile').value = cust.mobile || '';
-    document.getElementById('billCustEmail').value = cust.email || '';
-    document.getElementById('billCustAddress').value = cust.address || '';
   }
 }
 
@@ -1538,7 +1584,7 @@ function loadBillingProducts() {
   const select = document.getElementById('billProdSelect');
   if (!select) return;
   select.innerHTML = '<option value="">-- Select Product --</option>' + 
-    STORE.products.map(p => `<option value="${p.id}">${escapeHTML(p.code)} - ${escapeHTML(p.name)} (Stock: ${p.quantity})</option>`).join('');
+    STORE.products.map(p => `<option value="${p.id}">${escapeHTML(p.code)} - ${escapeHTML(p.name)} (Stock: ${p.stock})</option>`).join('');
 }
 
 function autoPopulatePrice() {
@@ -1566,15 +1612,15 @@ function addItemToBill() {
   const prod = STORE.products.find(p => p.id == prodId);
   if (!prod) return;
 
-  if (qty > prod.quantity) {
-    showToast(`⚠️ Cannot add item. Only ${prod.quantity} left in stock!`);
+  if (qty > prod.stock) {
+    showToast(`⚠️ Cannot add item. Only ${prod.stock} left in stock!`);
     return;
   }
 
   const existing = billItems.find(item => item.product_id == prodId);
   if (existing) {
-    if (existing.qty + qty > prod.quantity) {
-      showToast(`⚠️ Total quantity of ${existing.qty + qty} exceeds stock of ${prod.quantity}!`);
+    if (existing.qty + qty > prod.stock) {
+      showToast(`⚠️ Total quantity of ${existing.qty + qty} exceeds stock of ${prod.stock}!`);
       return;
     }
     existing.qty += qty;
@@ -1661,8 +1707,8 @@ function applyBillCoupon() {
 function submitBillAndInvoice() {
   const name = document.getElementById('billCustName').value.trim();
   const mobile = document.getElementById('billCustMobile').value.trim();
-  const email = document.getElementById('billCustEmail').value.trim();
-  const address = document.getElementById('billCustAddress').value.trim();
+  const email = '';
+  const address = '';
 
   if (!name || !mobile) {
     showToast('⚠️ Customer Name and Mobile are required!');
@@ -1826,6 +1872,85 @@ function loadReviews() {
 }
 
 // ═══════════════════════════════════════════════════
+//  WEB ORDERS MANAGEMENT
+// ═══════════════════════════════════════════════════
+function loadOrders() {
+  const tbody = document.getElementById('ordersTableBody');
+  if (!tbody) return;
+  const statusFilter = document.getElementById('orderStatusFilter').value;
+
+  const filtered = statusFilter === 'all' ? STORE.orders : STORE.orders.filter(o => o.status === statusFilter);
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No web orders found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(o => {
+    const itemsHTML = (o.items || []).map(it => `${escapeHTML(it.name)} (x${it.qty})`).join(', ');
+    const statusBadge = o.status === 'pending' ? 'badge-gold' : (o.status === 'completed' ? 'badge-green' : 'badge-red');
+    return `
+      <tr>
+        <td><strong style="color: var(--maroon);">PW-${o.id}</strong></td>
+        <td><strong>${escapeHTML(o.user || 'Guest')}</strong></td>
+        <td>${escapeHTML(o.mobile || '—')}</td>
+        <td style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHTML(itemsHTML)}">${escapeHTML(itemsHTML)}</td>
+        <td>₹${o.total.toFixed(2)}</td>
+        <td><span class="badge ${statusBadge}">${escapeHTML(o.status)}</span></td>
+        <td>${o.created_at}</td>
+        <td>
+          <select class="form-select form-select-sm d-inline-block w-auto me-1" onchange="updateOrderStatus(${o.id}, this.value)">
+            <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+            <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>Completed</option>
+            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+          </select>
+          <button class="btn btn-red btn-sm" onclick="deleteOrder(${o.id})"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function updateOrderStatus(orderId, status) {
+  fetch(`/api/admin/order/status/${orderId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Secret': adminSecretHeader
+    },
+    body: JSON.stringify({ status })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) {
+      showToast('❌ ' + data.error);
+    } else {
+      showToast('✅ Order status updated!');
+      fetchBackendData();
+    }
+  })
+  .catch(e => showToast('❌ Connection error.'));
+}
+
+function deleteOrder(orderId) {
+  if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) return;
+  fetch(`/api/admin/order/delete/${orderId}`, {
+    method: 'DELETE',
+    headers: { 'X-Admin-Secret': adminSecretHeader }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) {
+      showToast('❌ ' + data.error);
+    } else {
+      showToast('🗑️ Order deleted.');
+      fetchBackendData();
+    }
+  })
+  .catch(e => showToast('❌ Connection error.'));
+}
+
+// ═══════════════════════════════════════════════════
 //  REPORTS & EXPORTS
 // ═══════════════════════════════════════════════════
 function loadReports(reports) {
@@ -1874,7 +1999,7 @@ function createCoupon() {
     return;
   }
 
-  const payload = { code, discount: disc, max_uses: max, expiry: exp, description: desc };
+  const payload = { code, discount: disc, discount_percent: disc, max_uses: max, expiry: exp, expires_at: exp, description: desc };
   
   fetch('/api/admin/coupon/create', {
     method: 'POST',
@@ -2050,6 +2175,7 @@ function showPage(name, el) {
     designs: 'Products Inventory', 
     customers: 'Customers Directory', 
     billing: 'Invoice & Billing', 
+    orders: 'Web Orders',
     reviews: 'Customer Reviews',
     reports: 'Reports & Exports', 
     coupons: 'Coupons Management', 
@@ -2059,6 +2185,7 @@ function showPage(name, el) {
   document.getElementById('topBread').textContent = titles[name] || name;
   
   if (name === 'settings') loadSettingsForm();
+  if (name === 'orders') loadOrders();
   if (name === 'billing') {
     document.getElementById('invoiceDownloadBlock').classList.add('d-none');
     generatedBillId = null;

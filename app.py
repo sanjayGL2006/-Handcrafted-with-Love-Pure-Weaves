@@ -604,6 +604,33 @@ def get_all_orders(current_user: User) -> RouteResponse:
         } for item in o.items]
     } for o in orders]), 200
 
+
+@app.route('/api/admin/order/status/<int:order_id>', methods=['POST'])
+@admin_required
+def update_order_status(current_user: User, order_id: int) -> RouteResponse:
+    data = request.json or {}
+    status = data.get('status')
+    order = Order.query.get(order_id)
+    if not order:
+        return jsonify({'error': 'Order not found'}), 404
+    order.status = status
+    db.session.commit()
+    return jsonify({'message': f'Order status updated to {status}'}), 200
+
+
+@app.route('/api/admin/order/delete/<int:order_id>', methods=['DELETE'])
+@admin_required
+def delete_order(current_user: User, order_id: int) -> RouteResponse:
+    order = Order.query.get(order_id)
+    if not order:
+        return jsonify({'error': 'Order not found'}), 404
+    # Delete order items first
+    OrderItem.query.filter_by(order_id=order_id).delete()
+    db.session.delete(order)
+    db.session.commit()
+    return jsonify({'message': 'Order deleted successfully'}), 200
+
+
 @app.route('/api/admin/stats', methods=['GET'])
 @admin_required
 def get_stats(current_user: User) -> RouteResponse:
