@@ -1648,6 +1648,109 @@
       filter: grayscale(80%);
       opacity: 0.6;
     }
+
+    /* Review Card Custom Styling */
+    .review-card {
+      width: 100%;
+      max-width: 340px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      margin: 2rem auto 0;
+    }
+
+    .review-card .top-block {
+      background-color: #36171e;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 15px 15px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .review-card .top-block h2 {
+      margin: 0;
+      color: #f8f1e6;
+      font-size: 20px;
+      letter-spacing: 0.5px;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .review-card .middle-band {
+      background-color: #ead6c0;
+      height: 8px;
+      width: 100%;
+    }
+
+    .review-card .bottom-block {
+      background-color: #f8f1e6;
+      padding: 20px;
+    }
+
+    .review-card .form-group {
+      margin-bottom: 12px;
+    }
+
+    .review-card label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #36171e;
+      font-size: 13px;
+    }
+
+    .review-card input[type="text"], 
+    .review-card textarea, 
+    .review-card select {
+      width: 100%;
+      padding: 8px;
+      border: 2px solid #ead6c0;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 13px;
+      font-family: inherit;
+      background-color: #ffffff;
+      color: #333;
+      transition: border-color 0.3s ease;
+    }
+
+    .review-card input[type="text"]:focus, 
+    .review-card textarea:focus, 
+    .review-card select:focus {
+      outline: none;
+      border-color: #36171e;
+      box-shadow: none;
+    }
+
+    .review-card textarea {
+      resize: vertical;
+    }
+
+    .review-card .submit-btn {
+      background-color: #36171e;
+      color: #ead6c0;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 14px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: background-color 0.3s ease, transform 0.1s ease;
+    }
+
+    .review-card .submit-btn:hover {
+      background-color: #4f222c;
+    }
+
+    .review-card .submit-btn:active {
+      transform: scale(0.98);
+    }
   </style>
 </head>
 
@@ -2174,27 +2277,45 @@
           <!-- Reviews rendered by JS -->
         </div>
         <!-- Add Review Form -->
-        <div style="background:var(--white);border-radius:10px;border:1px solid var(--border);padding:1.25rem;">
-          <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:var(--deep);margin-bottom:1rem;">✍️ Write a Review</h3>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-            <input id="reviewName" aria-label="Your name" placeholder="Your name" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;outline:none;" />
-            <div style="display:flex;gap:6px;align-items:center;">
-              <span style="font-size:13px;color:var(--muted);">Rating:</span>
-              <select id="reviewRating" aria-label="Review rating stars" style="padding:9px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;outline:none;">
-                <option value="5">⭐⭐⭐⭐⭐</option>
-                <option value="4">⭐⭐⭐⭐</option>
-                <option value="3">⭐⭐⭐</option>
-                <option value="2">⭐⭐</option>
-                <option value="1">⭐</option>
-              </select>
-            </div>
+        <div class="review-card">
+          <div class="top-block">
+            <h2>Write a Review</h2>
           </div>
-          <div style="margin-bottom:10px;">
-            <input id="reviewMobile" aria-label="Your mobile number" placeholder="Your mobile number" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;outline:none;" />
+          <div class="middle-band"></div>
+          <div class="bottom-block">
+            <form id="reviewForm" onsubmit="event.preventDefault(); submitReview();">
+              
+              <div class="form-group">
+                <label for="reviewName">Username</label>
+                <input type="text" id="reviewName" placeholder="Your name" required>
+              </div>
+
+              <div class="form-group">
+                <label for="reviewMobile">Mobile Number</label>
+                <input type="text" id="reviewMobile" placeholder="Your mobile number" required>
+              </div>
+
+              <div class="form-group">
+                <label for="reviewRating">Rating</label>
+                <select id="reviewRating" required>
+                  <option value="" disabled selected>Select...</option>
+                  <option value="1">1) ❤️</option>
+                  <option value="2">2) ❤️❤️</option>
+                  <option value="3">3) ❤️❤️❤️</option>
+                  <option value="4">4) ❤️❤️❤️❤️</option>
+                  <option value="5">5) ❤️❤️❤️❤️❤️</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="reviewText">Your Review</label>
+                <textarea id="reviewText" rows="3" placeholder="Tell us what you think..." required></textarea>
+              </div>
+
+              <button type="submit" class="submit-btn">Submit</button>
+            </form>
+            <div id="reviewMsg" style="font-size:12px;color:var(--green);margin-top:10px;text-align:center;"></div>
           </div>
-          <textarea id="reviewText" aria-label="Review feedback description" placeholder="Share your experience with Pure Weaves..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;outline:none;resize:vertical;min-height:80px;box-sizing:border-box;margin-bottom:10px;"></textarea>
-          <button onclick="submitReview()" style="background:var(--maroon);color:white;border:none;border-radius:7px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;">Submit Review</button>
-          <div id="reviewMsg" style="font-size:12px;color:var(--green);margin-top:6px;"></div>
         </div>
       </div>
     </div>
