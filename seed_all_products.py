@@ -17,6 +17,7 @@ import io
 import base64
 import sqlite3
 import datetime
+from typing import Any, List
 
 # Force UTF-8 output on Windows
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
@@ -32,7 +33,7 @@ print("[1/3] Reading products from index.html ...")
 with open(INDEX_HTML, 'r', encoding='utf-8', errors='ignore') as f:
     html = f.read()
 
-products_data = []
+products_data: List[Any] = []
 for line in html.splitlines():
     line = line.strip()
     if not line.startswith('{ "id":'):

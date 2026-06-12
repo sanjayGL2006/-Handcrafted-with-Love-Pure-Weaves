@@ -1219,7 +1219,7 @@ def _health_check() -> RouteResponse:
 
 
 @app.errorhandler(Exception)
-def _handle_global_error(e: Exception):
+def _handle_global_error(e: Exception) -> RouteResponse:
     # Log to stdout so Vercel captures the stacktrace in logs
     import traceback, sys
     traceback.print_exc(file=sys.stdout)

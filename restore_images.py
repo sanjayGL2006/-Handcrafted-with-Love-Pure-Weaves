@@ -16,6 +16,7 @@ import os
 import base64
 import sys
 import io
+from typing import Any
 
 # Force UTF-8 output on Windows
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
@@ -30,7 +31,7 @@ print("[1/3] Reading index.html ...")
 with open(INDEX_HTML, 'r', encoding='utf-8', errors='ignore') as f:
     html = f.read()
 
-products_found = []
+products_found: list[Any] = []  # type: ignore[unknown-name]
 for line in html.splitlines():
     line = line.strip()
     if not line.startswith('{ "id":'):
@@ -52,7 +53,7 @@ print(f"    Found {len(products_found)} products with embedded images.")
 print(f"[2/3] Saving images to {IMAGES_DIR} ...")
 os.makedirs(IMAGES_DIR, exist_ok=True)
 
-saved = []
+saved: list[Any] = []
 errors = 0
 for prod_id, prod_name, img_type, b64_data in products_found:
     ext = 'jpg' if img_type in ('jpeg', 'jpg') else img_type

@@ -9,9 +9,10 @@ import io
 import zipfile
 import datetime
 from fpdf import FPDF
+from typing import Any
 
 class InvoicePDF(FPDF):
-    def __init__(self, invoice_no, date, customer, subtotal, tax, discount, total):
+    def __init__(self, invoice_no: Any, date: Any, customer: Any, subtotal: Any, tax: Any, discount: Any, total: Any) -> None:
         super().__init__()
         self.invoice_no = invoice_no
         self.date = date
@@ -21,7 +22,7 @@ class InvoicePDF(FPDF):
         self.discount = float(discount)
         self.total = float(total)
 
-    def header(self):
+    def header(self) -> None:
         # Premium Maroon Color Palette Top Bar
         self.set_fill_color(123, 26, 46) # #7B1A2E Maroon
         self.rect(0, 0, 210, 35, 'F')
@@ -43,7 +44,7 @@ class InvoicePDF(FPDF):
         self.cell(90, 4, "Email: pureweaves@gmail.com", align='R', ln=True)
         self.set_y(40)
 
-    def footer(self):
+    def footer(self) -> None:
         self.set_y(-25)
         self.set_font('Helvetica', 'I', 8)
         self.set_text_color(123, 26, 46)
@@ -53,7 +54,7 @@ class InvoicePDF(FPDF):
         self.cell(0, 4, "Copyright 2026 Pure Weaves Shivamogga. All rights reserved.", align='C', ln=True)
 
 
-def generate_pdf_invoice(invoice_no, date, customer, items, subtotal, tax, discount, total):
+def generate_pdf_invoice(invoice_no: Any, date: Any, customer: Any, items: Any, subtotal: Any, tax: Any, discount: Any, total: Any) -> Any:
     pdf = InvoicePDF(invoice_no, date, customer, subtotal, tax, discount, total)
     pdf.add_page()
     pdf.set_margins(15, 15, 15)
@@ -135,7 +136,7 @@ def generate_pdf_invoice(invoice_no, date, customer, items, subtotal, tax, disco
     return pdf.output()
 
 
-def generate_docx_invoice(invoice_no, date, customer, items, subtotal, tax, discount, total):
+def generate_docx_invoice(invoice_no: Any, date: Any, customer: Any, items: Any, subtotal: Any, tax: Any, discount: Any, total: Any) -> Any:
     """
     Generates a Microsoft Word document (.docx) using manual OpenXML packaging.
     Avoids compiled lxml/Cython dependencies for full compatibility.

@@ -3,7 +3,8 @@ with open('index.html', 'r', encoding='utf-8') as f:
 
 import re
 matches = re.finditer(r'\b(img|image|image_path)\b', content)
-found = {}
+from typing import Dict, Any
+found: Dict[Any, Any] = {}
 for m in matches:
     start_pos = m.start()
     line_no = content[:start_pos].count('\n') + 1
