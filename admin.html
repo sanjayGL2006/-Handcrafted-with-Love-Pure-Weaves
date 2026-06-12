@@ -544,9 +544,8 @@ tr:hover td { background:rgba(201,168,76,0.04); }
             <div class="row g-2 align-items-end mb-4">
               <div class="col-md-6 form-group">
                 <label class="form-label">Select Saree Kuchu / Bunch Design</label>
-                <select class="form-select" id="billProdSelect" onchange="autoPopulatePrice()">
-                  <option value="">-- Select Product --</option>
-                </select>
+                <input class="form-input" list="billProdDatalist" id="billProdSelect" placeholder="Type design name or select..." onchange="autoPopulatePrice()" />
+                <datalist id="billProdDatalist"></datalist>
               </div>
               <div class="col-md-3 form-group">
                 <label class="form-label">Price (INR)</label>
@@ -1581,49 +1580,66 @@ function autoPopulateCustomer() {
 }
 
 function loadBillingProducts() {
-  const select = document.getElementById('billProdSelect');
-  if (!select) return;
-  select.innerHTML = '<option value="">-- Select Product --</option>' + 
-    STORE.products.map(p => `<option value="${p.id}">${escapeHTML(p.code)} - ${escapeHTML(p.name)} (Stock: ${p.stock})</option>`).join('');
+  const dl = document.getElementById('billProdDatalist');
+  if (!dl) return;
+  dl.innerHTML = STORE.products.map(p => `<option value="${escapeHTML(p.name)}">${escapeHTML(p.code)} (Stock: ${p.stock})</option>`).join('');
 }
 
 function autoPopulatePrice() {
-  const val = document.getElementById('billProdSelect').value;
+  const val = document.getElementById('billProdSelect').value.trim();
   const priceInput = document.getElementById('billProdPrice');
   if (!val) {
     priceInput.value = '';
     return;
   }
 
-  const prod = STORE.products.find(p => p.id == val);
+  // Find product by name or code
+  const prod = STORE.products.find(p => p.name.toLowerCase() === val.toLowerCase() || p.code.toLowerCase() === val.toLowerCase());
   if (prod) {
     priceInput.value = prod.price_min.toFixed(2);
   }
 }
 
 function addItemToBill() {
-  const prodId = document.getElementById('billProdSelect').value;
+  const val = document.getElementById('billProdSelect').value.trim();
   const qty = parseInt(document.getElementById('billProdQty').value);
-  if (!prodId || isNaN(qty) || qty <= 0) {
-    showToast('⚠️ Please select a product and valid quantity.');
+  if (!val || isNaN(qty) || qty <= 0) {
+    showToast('⚠️ Please enter a product name and valid quantity.');
     return;
   }
 
-  const prod = STORE.products.find(p => p.id == prodId);
-  if (!prod) return;
-
-  if (qty > prod.stock) {
-    showToast(`⚠️ Cannot add item. Only ${prod.stock} left in stock!`);
-    return;
-  }
-
+  // Find product in database
+  const prod = STORE.products.find(p => p.name.toLowerCase() === val.toLowerCase() || p.code.toLowerCase() === val.toLowerCase());
+  
   const customPriceInput = document.getElementById('billProdPrice').value;
   const priceVal = parseFloat(customPriceInput);
-  const finalPrice = (!isNaN(priceVal) && priceVal >= 0) ? priceVal : prod.price_min;
+  
+  let finalPrice = 0;
+  let prodName = val;
+  let prodCode = 'CUSTOM';
+  let prodId = null;
 
-  const existing = billItems.find(item => item.product_id == prodId);
+  if (prod) {
+    if (qty > prod.stock) {
+      showToast(`⚠️ Cannot add item. Only ${prod.stock} left in stock!`);
+      return;
+    }
+    finalPrice = (!isNaN(priceVal) && priceVal >= 0) ? priceVal : prod.price_min;
+    prodName = prod.name;
+    prodCode = prod.code;
+    prodId = prod.id;
+  } else {
+    // Custom item not in database
+    if (isNaN(priceVal) || priceVal < 0) {
+      showToast('⚠️ Please enter a valid price for this custom design.');
+      return;
+    }
+    finalPrice = priceVal;
+  }
+
+  const existing = billItems.find(item => item.product_id === prodId && item.name === prodName);
   if (existing) {
-    if (existing.qty + qty > prod.stock) {
+    if (prod && existing.qty + qty > prod.stock) {
       showToast(`⚠️ Total quantity of ${existing.qty + qty} exceeds stock of ${prod.stock}!`);
       return;
     }
@@ -1631,13 +1647,18 @@ function addItemToBill() {
     existing.price = finalPrice;
   } else {
     billItems.push({
-      product_id: prod.id,
-      code: prod.code,
-      name: prod.name,
+      product_id: prodId,
+      code: prodCode,
+      name: prodName,
       price: finalPrice,
       qty: qty
     });
   }
+
+  // Clear inputs for next selection
+  document.getElementById('billProdSelect').value = '';
+  document.getElementById('billProdPrice').value = '';
+  document.getElementById('billProdQty').value = '1';
 
   renderBillItems();
 }
