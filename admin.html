@@ -550,7 +550,7 @@ tr:hover td { background:rgba(201,168,76,0.04); }
               </div>
               <div class="col-md-3 form-group">
                 <label class="form-label">Price (INR)</label>
-                <input class="form-input" id="billProdPrice" readonly />
+                <input class="form-input" id="billProdPrice" type="number" step="any" min="0" placeholder="0.00" />
               </div>
               <div class="col-md-2 form-group">
                 <label class="form-label">Quantity</label>
@@ -1617,6 +1617,10 @@ function addItemToBill() {
     return;
   }
 
+  const customPriceInput = document.getElementById('billProdPrice').value;
+  const priceVal = parseFloat(customPriceInput);
+  const finalPrice = (!isNaN(priceVal) && priceVal >= 0) ? priceVal : prod.price_min;
+
   const existing = billItems.find(item => item.product_id == prodId);
   if (existing) {
     if (existing.qty + qty > prod.stock) {
@@ -1624,12 +1628,13 @@ function addItemToBill() {
       return;
     }
     existing.qty += qty;
+    existing.price = finalPrice;
   } else {
     billItems.push({
       product_id: prod.id,
       code: prod.code,
       name: prod.name,
-      price: prod.price_min,
+      price: finalPrice,
       qty: qty
     });
   }
