@@ -859,10 +859,6 @@ def clear_logs(current_user: User) -> RouteResponse:
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/admin/bills/add', methods=['POST'])
-def handle_bills_add() -> None:
-    return handle_bills()
-
 
 # ─── SUGGESTION ROUTES ────────────────────────────────────────
 

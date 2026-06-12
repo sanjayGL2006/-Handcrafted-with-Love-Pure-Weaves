@@ -657,15 +657,18 @@ def admin_login() -> RouteResponse:
         return jsonify({'error': 'Username and password required'}), 400
         
     user = User.query.filter((User.email == username) | (User.name == username)).first()
-    if username == 'admin':
-        if user and bcrypt.check_password_hash(user.password_hash, password):
-            secret = os.environ.get('ADMIN_PANEL_SECRET', 'pureweaves2024')
-            return jsonify({'secret': secret}), 200
+    if not user:
+        # Fallback to case-insensitive match
+        user = User.query.filter((db.func.lower(User.email) == username.lower()) | (db.func.lower(User.name) == username.lower())).first()
+
+    if user and user.is_admin and user.password_hash:
+        try:
+            if bcrypt.check_password_hash(user.password_hash, password):
+                secret = os.environ.get('ADMIN_PANEL_SECRET', 'pureweaves2024')
+                return jsonify({'secret': secret}), 200
+        except Exception:
+            pass
             
-    if user and user.is_admin and bcrypt.check_password_hash(user.password_hash, password):
-        secret = os.environ.get('ADMIN_PANEL_SECRET', 'pureweaves2024')
-        return jsonify({'secret': secret}), 200
-        
     return jsonify({'error': 'Invalid admin credentials'}), 401
 
 
@@ -845,8 +848,9 @@ def clear_logs(current_user: User) -> RouteResponse:
 
 
 @app.route('/api/admin/bills/add', methods=['POST'])
-def handle_bills_add() -> None:
-    return handle_bills()
+@admin_required
+def handle_bills_add(current_user: User) -> None:
+    return handle_bills(current_user)
 
 
 # ─── SUGGESTION ROUTES ────────────────────────────────────────
@@ -1013,14 +1017,15 @@ def handle_customer_detail(current_user: User, cust_id: int) -> None:
 # ─── BILLING SYSTEM ROUTES ────────────────────────────────────
 
 @app.route('/api/admin/bills', methods=['GET', 'POST'])
-def handle_bills() -> None:
+@admin_required
+def handle_bills(current_user: User) -> None:
     if request.method == 'GET':
         bills = Bill.query.order_by(Bill.created_at.desc()).all()
         return jsonify([{
             'id': b.id,
             'invoice_number': b.invoice_number,
-            'customer_name': b.customer.name,
-            'customer_mobile': b.customer.mobile,
+            'customer_name': b.customer.name if b.customer else 'Unknown',
+            'customer_mobile': b.customer.mobile if b.customer else '—',
             'customer_id': b.customer_id,
             'subtotal': b.subtotal,
             'tax': b.tax,
@@ -1029,7 +1034,7 @@ def handle_bills() -> None:
             'created_at': b.created_at.strftime('%d-%m-%Y %H:%M'),
             'items': [{
                 'product_id': item.product_id,
-                'name': item.product.name,
+                'name': item.product.name if item.product else 'Unknown Product',
                 'qty': item.quantity,
                 'price': item.price
             } for item in b.items]
@@ -1037,19 +1042,19 @@ def handle_bills() -> None:
 
     elif request.method == 'POST':
         data = request.json or {}
-        customer_id = data.get('customer_id')
+        customer_id = data.get('customer_id') or data.get('customerId')
         items = data.get('items', [])
         coupon_code = data.get('coupon_code', '').strip().upper()
         
-        if not customer_id and data.get('customer_name'):
-            mobile = data.get('customer_mobile', '0000000000')
+        if not customer_id and (data.get('customer_name') or data.get('name')):
+            mobile = data.get('mobile') or data.get('customer_mobile') or '0000000000'
             cust = Customer.query.filter_by(mobile=mobile).first()
             if not cust:
                 cust = Customer(
-                    name=data.get('customer_name'),
+                    name=data.get('customer_name') or data.get('name'),
                     mobile=mobile,
-                    email=data.get('customer_email'),
-                    address=data.get('customer_address')
+                    email=data.get('email') or data.get('customer_email'),
+                    address=data.get('address') or data.get('customer_address')
                 )
                 db.session.add(cust)
                 db.session.flush()
@@ -1065,8 +1070,8 @@ def handle_bills() -> None:
         db_items = []
         
         for i in items:
-            p_id = i.get('product_id')
-            qty = int(i.get('quantity', 1))
+            p_id = i.get('product_id') or i.get('productId')
+            qty = int(i.get('quantity') or i.get('qty') or 1)
             product = Product.query.get(p_id)
             if not product:
                 return jsonify({'error': f'Product ID {p_id} not found'}), 400

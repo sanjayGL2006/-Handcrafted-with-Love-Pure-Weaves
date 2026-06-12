@@ -1678,7 +1678,11 @@ function submitBillAndInvoice() {
   const discount = appliedCoupon ? subtotal * (appliedCoupon.discount / 100) : 0;
   const total = subtotal + tax - discount;
 
+  const custSelect = document.getElementById('billCustSelect');
+  const customerId = custSelect ? custSelect.value : null;
+
   const payload = {
+    customer_id: customerId || null,
     customer_name: name,
     mobile: mobile,
     email: email,
