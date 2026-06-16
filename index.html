@@ -2842,7 +2842,7 @@
         if (sortF === 'name_az') list = [...list].sort((a, b) => a.name.localeCompare(b.name));
 
         document.getElementById('catalogCount').textContent = `Showing ${list.length} design${list.length !== 1 ? 's' : ''}`;
-        document.getElementById('catalogGrid').innerHTML = list.length
+        document.getElementById('catalogGrid').innerHTML = list.length > 0
           ? list.map(d => renderCard(d)).join('')
           : '<p style="grid-column:1/-1;text-align:center;color:var(--muted);padding:2rem">No designs found for your search.</p>';
       }

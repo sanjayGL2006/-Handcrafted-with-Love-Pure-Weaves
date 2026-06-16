@@ -1,0 +1,13 @@
+# Environments & Dependencies
+.venv/
+node_modules/
+__pycache__/
+.basilisk/
+
+# Local databases & configurations
+instance/
+.vscode/
+
+# Manual backup files
+*.bak
+*.bak2

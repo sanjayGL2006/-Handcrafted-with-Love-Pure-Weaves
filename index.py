@@ -322,6 +322,16 @@ def admin_required(f: Callable[..., RouteResponse]) -> Callable[..., RouteRespon
         return f(current_user, *args, **kwargs)
     return decorated
 
+
+def get_admin_secret() -> str:
+    return request.headers.get('X-Admin-Secret', '') or request.args.get('secret', '')
+
+
+def admin_secret_valid() -> bool:
+    admin_secret = get_admin_secret()
+    expected_secret = os.environ.get('ADMIN_PANEL_SECRET', 'pureweaves2024')
+    return bool(admin_secret and admin_secret == expected_secret)
+
 # ─── AUTH ROUTES ─────────────────────────────────────────────
 
 @app.route('/api/auth/google', methods=['POST'])
@@ -353,6 +363,37 @@ def google_login() -> RouteResponse:
             db.session.commit()
     token = generate_token(user.id)
     return jsonify({'token': token, 'user': {'id': user.id, 'name': user.name, 'email': user.email}}), 200
+
+
+@app.route('/api/admin/google', methods=['POST'])
+def admin_google_login() -> RouteResponse:
+    """
+    Admin Google OAuth login
+    POST /api/admin/google
+    Body: { "google_id": "...", "email": "...", "name": "..." }
+    """
+    data = request.json or {}
+    google_id = data.get('google_id')
+    email = (data.get('email') or '').strip().lower()
+    name = (data.get('name') or '').strip()
+
+    if not google_id or not email:
+        return jsonify({'error': 'Invalid Google account data'}), 400
+
+    user = User.query.filter_by(google_id=google_id).first()
+    if not user:
+        user = User.query.filter_by(email=email).first()
+        if user and user.is_admin:
+            user.google_id = google_id
+            if name and not user.name:
+                user.name = name
+            db.session.commit()
+
+    if not user or not user.is_admin:
+        return jsonify({'error': 'Admin account not found or unauthorized'}), 401
+
+    secret = os.environ.get('ADMIN_PANEL_SECRET', 'pureweaves2024')
+    return jsonify({'secret': secret}), 200
 
 
 @app.route('/api/auth/register', methods=['POST'])
@@ -599,9 +640,9 @@ def get_all_orders(current_user: User) -> RouteResponse:
     orders = Order.query.order_by(Order.created_at.desc()).all()
     return jsonify([{
         'id': o.id,
-        'user_id': o.user.id,
-        'user': o.user.name,
-        'mobile': o.user.mobile,
+        'user_id': o.user.id if o.user else o.user_id,
+        'user': o.user.name if o.user else 'Unknown Customer',
+        'mobile': o.user.mobile if o.user else '',
         'total': o.total_amount,
         'status': o.status,
         'coupon': o.coupon_code,
@@ -610,7 +651,7 @@ def get_all_orders(current_user: User) -> RouteResponse:
         'items': [{
             'id': item.id,
             'product_id': item.product_id,
-            'name': item.product.name,
+            'name': item.product.name if item.product else 'Unknown Product',
             'qty': item.quantity,
             'price': item.price
         } for item in o.items]
@@ -997,7 +1038,7 @@ def handle_customers(current_user: User) -> RouteResponse:
                 'invoice_number': b.invoice_number,
                 'total': b.total,
                 'date': b.created_at.strftime('%d-%m-%Y') if b.created_at else ''
-            } for b in c.bills]
+            } for b in (c.bills or [])]
         } for c in custs]), 200
 
     elif request.method == 'POST':
@@ -1176,6 +1217,9 @@ def handle_bills_add(current_user: User) -> None:
 
 @app.route('/api/admin/bills/pdf/<int:bill_id>', methods=['GET'])
 def get_bill_pdf(bill_id: int) -> None:
+    if not admin_secret_valid():
+        return jsonify({'error': 'Admin access required'}), 403
+
     bill = Bill.query.get(bill_id)
     if not bill:
         return jsonify({'error': 'Bill not found'}), 404
@@ -1217,6 +1261,9 @@ def get_bill_pdf(bill_id: int) -> None:
 
 @app.route('/api/admin/bills/docx/<int:bill_id>', methods=['GET'])
 def get_bill_docx(bill_id: int) -> None:
+    if not admin_secret_valid():
+        return jsonify({'error': 'Admin access required'}), 403
+
     bill = Bill.query.get(bill_id)
     if not bill:
         return jsonify({'error': 'Bill not found'}), 404
@@ -1274,7 +1321,8 @@ def _handle_global_error(e: Exception) -> RouteResponse:
 # ─── REPORTS & ANALYTICS ROUTES ────────────────────────────────
 
 @app.route('/api/admin/reports', methods=['GET'])
-def get_reports() -> None:
+@admin_required
+def get_reports(current_user: User) -> None:
     now = datetime.datetime.now()
     today_start = datetime.datetime(now.year, now.month, now.day)
     
@@ -1312,7 +1360,7 @@ def get_reports() -> None:
     bills = Bill.query.order_by(Bill.created_at.desc()).limit(50).all()
     billing_logs = [{
         'id': b.id,
-        'customer': b.customer.name,
+        'customer': b.customer.name if b.customer else 'Unknown Customer',
         'total': b.total,
         'date': b.created_at.strftime('%d-%m-%Y')
     } for b in bills]
@@ -1361,6 +1409,9 @@ def get_reports() -> None:
 
 @app.route('/api/admin/reports/export/<string:format_type>', methods=['GET'])
 def export_reports(format_type: Any) -> None:
+    if not admin_secret_valid():
+        return jsonify({'error': 'Admin access required'}), 403
+
     bills = Bill.query.order_by(Bill.created_at.desc()).all()
     
     if format_type == 'csv':
@@ -1453,7 +1504,8 @@ with app.app_context():
         db.create_all()
         admin_user = User.query.filter_by(is_admin=True).first()
         if not admin_user:
-            hashed_pw = bcrypt.generate_password_hash('pureweaves2024').decode('utf-8')
+            # Default admin credentials for initial dashboard access
+            hashed_pw = bcrypt.generate_password_hash('admin123').decode('utf-8')
             admin = User(name="Admin", email="admin@pureweaves.com", password_hash=hashed_pw, is_admin=True)
             db.session.add(admin)
             db.session.commit()

@@ -57,7 +57,7 @@ def create_app(config_class: Any=Config) -> None:  # type: ignore[unknown-name]
     import os
 
     @app.route('/assets/<path:filename>')
-    def project_assets(filename: str):
+    def project_assets(filename: str) -> None:
         assets_dir = os.path.join(app.root_path, '..', 'assets')
         return send_from_directory(assets_dir, filename)
 
