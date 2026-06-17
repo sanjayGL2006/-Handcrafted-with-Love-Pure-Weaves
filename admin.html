@@ -549,9 +549,8 @@ tr:hover td { background:rgba(201,168,76,0.04); }
             <div class="row g-2 align-items-end mb-4">
               <div class="col-md-6 form-group">
                 <label class="form-label">Select Saree Kuchu / Bunch Design</label>
-                <select class="form-select" id="billProdSelect" onchange="autoPopulatePrice()">
-                  <option value="">-- Select Design / Saree Kuchu --</option>
-                </select>
+                <input class="form-input" id="billProdSelect" list="billProdList" onchange="autoPopulatePrice()" placeholder="Type or select design..." />
+                <datalist id="billProdList"></datalist>
               </div>
               <div class="col-md-3 form-group">
                 <label class="form-label">Price (INR)</label>
@@ -1701,10 +1700,9 @@ function autoPopulateCustomer() {
 }
 
 function loadBillingProducts() {
-  const select = document.getElementById('billProdSelect');
-  if (!select) return;
-  select.innerHTML = '<option value="">-- Select Design / Saree Kuchu --</option>' + 
-    STORE.products.map(p => `<option value="${escapeHTML(p.name)}">${escapeHTML(p.name)} [${escapeHTML(p.code)}] (Stock: ${p.stock})</option>`).join('');
+  const datalist = document.getElementById('billProdList');
+  if (!datalist) return;
+  datalist.innerHTML = STORE.products.map(p => `<option value="${escapeHTML(p.name)}">${escapeHTML(p.name)} [${escapeHTML(p.code)}] (Stock: ${p.stock})</option>`).join('');
 }
 
 function autoPopulatePrice() {
