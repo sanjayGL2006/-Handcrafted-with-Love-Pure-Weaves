@@ -1902,7 +1902,7 @@ function submitBillAndInvoice() {
     if (data.error) {
       showToast('❌ ' + data.error);
     } else {
-      generatedBillId = data.id;
+      generatedBillId = data.bill_id;
       showToast('✅ Bill saved to database!');
       document.getElementById('invoiceDownloadBlock').classList.remove('d-none');
       

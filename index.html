@@ -3232,14 +3232,14 @@
       }
 
       // ── INIT ──────────────────────────────────────────────────
-      syncCouponsFromAdmin();
+      loadCouponsFromAdmin();
 
       // ═══════════════════════════════════════════════════
       //  REVIEWS
       // ═══════════════════════════════════════════════════
       const DEFAULT_REVIEWS = [
         { name: "Priya S.", rating: 5, text: "Beautiful kuchu designs! My saree looks amazing with the Gold Locket Charm Kuchu. Quality is superb!", date: "12 May 2025", design: "Gold Locket Charm Kuchu" },
-        { name: "Kavitha R.", rating: 5, text: "Ordered 3 sets for my daughter's wedding. All designs were perfect. Latha amma's handwork is excellent!", date: "28 Apr 2025", design: "Bridal Collection" },
+        { name: "Latha R.", rating: 5, text: "Ordered 3 sets for my daughter's wedding. All designs were perfect. Latha amma's handwork is excellent!", date: "28 Apr 2025", design: "Bridal Collection" },
         { name: "Suma M.", rating: 5, text: "Very good quality and fast response on WhatsApp. The Pearl Diamond Kuchu is exactly as shown. Highly recommended!", date: "15 Mar 2025", design: "Pearl Diamond Kuchu" },
         { name: "Anitha K.", rating: 4, text: "Lovely designs at reasonable prices. The teal kuchu matched my silk saree perfectly. Will order again!", date: "2 Feb 2025", design: "Teal Multi Tassel Bunch" },
         { name: "Rekha B.", rating: 5, text: "Best kuchu shop in Shivamogga! Custom colors available too. Very happy with my purchase.", date: "18 Jan 2025", design: "Custom Order" },
@@ -3664,7 +3664,7 @@
       window.addEventListener('DOMContentLoaded', enableKeyboardClickables);
 
       // ── INIT ──────────────────────────────────────────────────────
-      syncCouponsFromAdmin();
+      loadCouponsFromAdmin();
       fetchProductsFromBackend();
       checkAuth();
 

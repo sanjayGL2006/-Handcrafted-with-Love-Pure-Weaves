@@ -555,12 +555,19 @@ def place_order(current_user: User) -> RouteResponse:
 @admin_required
 def add_product(current_user: User) -> RouteResponse:
     """Admin: Add new design/product"""
-    data    = request.json
+    data    = request.json or {}
+    price_min = data.get('price_min', 0)
+    price_max = data.get('price_max') if data.get('price_max') is not None else price_min
     product = Product(
-        name=data['name'], category=data['category'],
-        description=data['description'], price_min=data['price_min'],
-        price_max=data['price_max'], image_path=data.get('image_path', ''),
-        stock=data.get('stock', 100)
+        name=data.get('name'), 
+        code=data.get('code'),
+        category=data.get('category'),
+        description=data.get('description', ''), 
+        price_min=price_min,
+        price_max=price_max, 
+        image_path=data.get('image_path', ''),
+        stock=data.get('stock', 100),
+        quantity=data.get('stock', 100)
     )
     db.session.add(product)
     db.session.commit()
@@ -587,9 +594,9 @@ def get_all_orders(current_user: User) -> RouteResponse:
     orders = Order.query.order_by(Order.created_at.desc()).all()
     return jsonify([{
         'id': o.id,
-        'user_id': o.user.id,
-        'user': o.user.name,
-        'mobile': o.user.mobile,
+        'user_id': o.user.id if o.user else o.user_id,
+        'user': o.user.name if o.user else 'Unknown Customer',
+        'mobile': o.user.mobile if o.user else '',
         'total': o.total_amount,
         'status': o.status,
         'coupon': o.coupon_code,
@@ -598,7 +605,7 @@ def get_all_orders(current_user: User) -> RouteResponse:
         'items': [{
             'id': item.id,
             'product_id': item.product_id,
-            'name': item.product.name,
+            'name': item.product.name if item.product else 'Unknown Product',
             'qty': item.quantity,
             'price': item.price
         } for item in o.items]
@@ -1099,15 +1106,37 @@ def handle_bills(current_user: User) -> None:
         for i in items:
             p_id = i.get('product_id') or i.get('productId')
             qty = int(i.get('quantity') or i.get('qty') or 1)
-            product = Product.query.get(p_id)
+            
+            if not p_id:
+                # Custom item - map to placeholder custom product in db
+                custom_product = Product.query.filter_by(code='CUSTOM').first()
+                if not custom_product:
+                    custom_product = Product(
+                        name='Custom Product',
+                        code='CUSTOM',
+                        category='Kuchu',
+                        description='Placeholder for custom store bill items',
+                        price_min=0.01,
+                        price_max=999999.0,
+                        stock=999999,
+                        quantity=999999,
+                        is_active=False
+                    )
+                    db.session.add(custom_product)
+                    db.session.flush()
+                product = custom_product
+            else:
+                product = Product.query.get(p_id)
+                
             if not product:
                 return jsonify({'error': f'Product ID {p_id} not found'}), 400
                 
             current_stock = product.quantity if product.quantity is not None else product.stock
-            if current_stock < qty:
+            # Custom products have virtually infinite stock
+            if product.code != 'CUSTOM' and current_stock < qty:
                 return jsonify({'error': f'Product "{product.name}" has insufficient stock ({current_stock} remaining)'}), 400
                 
-            price = product.price if product.price is not None else product.price_min
+            price = float(i.get('price') or product.price or product.price_min)
             subtotal += price * qty
             db_items.append({'product': product, 'quantity': qty, 'price': price})
             
@@ -1296,10 +1325,9 @@ def get_reports() -> None:
             })
             
     # Recent transaction logs for reports
-    bills = Bill.query.order_by(Bill.created_at.desc()).limit(50).all()
     billing_logs = [{
         'id': b.id,
-        'customer': b.customer.name,
+        'customer': b.customer.name if b.customer else 'Unknown Customer',
         'total': b.total,
         'date': b.created_at.strftime('%d-%m-%Y')
     } for b in bills]
