@@ -47,7 +47,7 @@ app.config['MAX_LOGIN_ATTEMPTS']   = 5
 
 db    = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app, resources={r"/api/*": {"origins": ["https://pureweaves.vercel.app", "http://localhost:5000", "http://127.0.0.1:5000"]}})
 
 # ─── DATABASE MODELS ──────────────────────────────────────────
 
@@ -478,6 +478,41 @@ def get_products() -> RouteResponse:
         'image_path': p.image_path if (p.image_path and p.image_path.strip() != '') else f"/app/static/images/product_{p.id}.jpg",
         'stock': p.stock
     } for p in products]), 200
+
+@app.route('/api/profile', methods=['POST'])
+def save_profile() -> RouteResponse:
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    if not token:
+        return jsonify({'error': 'Login required'}), 401
+    try:
+        data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+        user = User.query.get(data['user_id'])
+        if not user or not user.is_active:
+            return jsonify({'error': 'User not found or inactive'}), 404
+    except Exception as e:
+        return jsonify({'error': 'Invalid or expired token'}), 401
+
+    payload = request.json or {}
+    name = payload.get('name')
+    mobile = payload.get('mobile')
+    email = payload.get('email')
+
+    if not name:
+        return jsonify({'error': 'Name is required'}), 400
+
+    user.name = name
+    if mobile:
+        user.mobile = mobile
+    if email:
+        user.email = email
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Database error: ' + str(e)}), 500
+
+    return jsonify({'success': True, 'user': {'id': user.id, 'name': user.name, 'email': user.email, 'mobile': user.mobile}}), 200
 
 # ─── CART ROUTES ─────────────────────────────────────────────
 

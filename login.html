@@ -479,6 +479,11 @@ function signInWithGoogle() {
 
 // ── SAVE USER & LOGIN ─────────────────────────────
 function saveAndLogin(user, token) {
+  if (user && user.email === 'admin@pureweaves.com') {
+    localStorage.setItem('adminToken', token || 'admin_jwt');
+    localStorage.setItem('pw_admin_secret', 'pureweaves2024');
+    CONFIG.REDIRECT_URL = 'admin.html';
+  }
   try {
     let state = {};
     try { state = JSON.parse(localStorage.getItem('pureweaves_state') || '{}'); } catch(e) {}

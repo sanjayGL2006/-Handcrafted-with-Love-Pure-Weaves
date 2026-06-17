@@ -1102,6 +1102,9 @@ tr:hover td { background:rgba(201,168,76,0.04); }
 <div class="toast" id="toast"></div>
 
 <script>
+if (!localStorage.getItem('adminToken') && !localStorage.getItem('pw_admin_secret')) {
+  window.location.href = '/index.html';
+}
 let adminSecretHeader = localStorage.getItem('pw_admin_secret') || '';
 let selectedCustomerId = null;
 let selectedProductId = null;
@@ -1170,6 +1173,7 @@ function doLogin() {
     if (data.secret) {
       adminSecretHeader = data.secret;
       localStorage.setItem('pw_admin_secret', data.secret);
+      localStorage.setItem('adminToken', data.secret);
       document.getElementById('loginScreen').style.display = 'none';
       err.textContent = '';
       fetchBackendData();
@@ -1185,9 +1189,9 @@ function doLogin() {
 
 function doLogout() {
   localStorage.removeItem('pw_admin_secret');
+  localStorage.removeItem('adminToken');
   adminSecretHeader = '';
-  document.getElementById('loginScreen').style.display = 'flex';
-  showToast('🚪 Logged out successfully.');
+  window.location.href = '/index.html';
 }
 
 function initFirebase() {

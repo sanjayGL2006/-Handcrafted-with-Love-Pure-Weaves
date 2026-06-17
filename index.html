@@ -2385,10 +2385,13 @@
                 </table>
               </div>
             </div>
-            <div style="display:flex;gap:12px;margin-top:auto;">
+            <div style="display:flex;gap:12px;margin-top:auto;flex-wrap:wrap;">
               <button id="modalAddToCartBtn"
-                style="flex:2;background:var(--maroon);color:var(--white);border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;transition:var(--transition);">🛒
+                style="flex:1.5;background:var(--maroon);color:var(--white);border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;transition:var(--transition);">🛒
                 Add to Cart</button>
+              <button onclick="closeProductModal(); openProductDetails(currentDetailProductId);"
+                style="flex:1.5;background:var(--gold);color:var(--white);border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;transition:var(--transition);">🎨
+                Customize</button>
               <a id="modalWhatsAppBtn" target="_blank" rel="noopener noreferrer"
                 style="flex:1;background:#25D366;color:#fff;text-decoration:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">💬
                 Chat</a>
@@ -2563,6 +2566,7 @@
             APP.token = s.token || null;
           }
         } catch (e) { }
+        updateCartBadge();
       }
 
       function saveState() {
@@ -2593,7 +2597,8 @@
         // Highlight Mobile Bottom Navigation Links
         document.querySelectorAll('.bottom-nav-btn').forEach(b => {
           b.classList.remove('active');
-          if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(`'${page}'`)) {
+          const clickStr = b.getAttribute('onclick') || '';
+          if (clickStr.includes(`'${page}'`) || clickStr.includes(`"${page}"`)) {
             b.classList.add('active');
           }
         });
@@ -2877,7 +2882,7 @@
         }
         list.innerHTML = APP.cart.map((item, idx) => `
     <div class="cart-card">
-      <img src="${escapeHTML(item.img)}" class="cart-img" alt="${escapeHTML(item.name)}" />
+      <img src="${escapeHTML(item.img || placeholderImg)}" class="cart-img" alt="${escapeHTML(item.name)}" onerror="this.onerror=null; this.src='${placeholderImg}';" />
       <div class="cart-info">
         <div class="cart-name">${escapeHTML(item.name)}</div>
         <div class="cart-price">₹${escapeHTML(parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0)}</div>
@@ -3111,12 +3116,46 @@
       }
 
       function saveProfile() {
-        APP.user.name = document.getElementById('profileName').value;
-        APP.user.mobile = document.getElementById('profileMobile').value;
-        APP.user.email = document.getElementById('profileEmail').value;
+        const name = document.getElementById('profileName').value.trim();
+        const mobile = document.getElementById('profileMobile').value.trim();
+        const email = document.getElementById('profileEmail').value.trim();
+
+        if (!name) {
+          showToast('⚠️ Name is required.');
+          return;
+        }
+
+        APP.user.name = name;
+        APP.user.mobile = mobile;
+        APP.user.email = email;
         saveState();
         document.getElementById('navUserName').textContent = APP.user.name;
-        showToast('✅ Profile saved!');
+
+        if (APP.token) {
+          fetch('/api/profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + APP.token
+            },
+            body: JSON.stringify({ name, mobile, email })
+          })
+          .then(r => r.json())
+          .then(data => {
+            if (data.error) {
+              console.error('Error saving profile on backend:', data.error);
+              showToast('❌ Failed to sync profile with server.');
+            } else {
+              showToast('✅ Profile saved and synced!');
+            }
+          })
+          .catch(err => {
+            console.error('Failed to post profile:', err);
+            showToast('❌ Network error syncing profile.');
+          });
+        } else {
+          showToast('✅ Profile saved locally!');
+        }
       }
 
       function showSkeletonCards(container, count) {
@@ -3164,7 +3203,7 @@
                 category: p.category,
                 desc: p.description,
                 price: p.price_min > 0 ? `₹${p.price_min}` : 'Price on request',
-                img: p.image_path || placeholderImg,
+                img: (p.image_path && p.image_path.trim() !== '') ? p.image_path : placeholderImg,
                 stock: p.stock !== undefined ? p.stock : 100
               }));
               console.log("Dynamically loaded", DESIGNS.length, "designs from backend");
@@ -3368,26 +3407,21 @@
       //  WISHLIST
       // ═══════════════════════════════════════════════════
       function toggleWishlist(id, name) {
-        let state = {};
-        try { state = JSON.parse(localStorage.getItem('pureweaves_state') || '{}'); } catch (e) { }
-        if (!state.wishlist) state.wishlist = [];
-        const idx = state.wishlist.findIndex(w => w.id === id);
+        if (!APP.wishlist) APP.wishlist = [];
+        const idx = APP.wishlist.findIndex(w => w.id === id);
         if (idx >= 0) {
-          state.wishlist.splice(idx, 1);
+          APP.wishlist.splice(idx, 1);
           showToast('💔 Removed from wishlist');
         } else {
-          state.wishlist.push({ id, name });
+          APP.wishlist.push({ id, name });
           showToast('❤️ Added to wishlist!');
         }
-        try { localStorage.setItem('pureweaves_state', JSON.stringify(state)); } catch (e) { }
+        saveState();
         updateWishlistBtn(id);
       }
 
       function isWishlisted(id) {
-        try {
-          const state = JSON.parse(localStorage.getItem('pureweaves_state') || '{}');
-          return (state.wishlist || []).some(w => w.id === id);
-        } catch (e) { return false; }
+        return (APP.wishlist || []).some(w => w.id === id);
       }
 
       function updateWishlistBtn(id) {
@@ -3399,12 +3433,7 @@
         const grid = document.getElementById('wishlistGrid');
         if (!grid) return;
         
-        let state = {};
-        try {
-          state = JSON.parse(localStorage.getItem('pureweaves_state') || '{}');
-        } catch (e) { }
-        
-        const wishlist = state.wishlist || [];
+        const wishlist = APP.wishlist || [];
         
         if (!wishlist.length) {
           grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--muted);padding:2rem;">Your wishlist is empty. <span style="color:var(--maroon);cursor:pointer;" onclick="showPage(\'catalog\')">Browse designs →</span></p>';
@@ -3424,7 +3453,112 @@
         grid.innerHTML = items.map(d => renderCard(d)).join('');
       }
 
+      let currentDetailProductId = null;
+
+      function openProductDetails(id) {
+        const d = DESIGNS.find(item => item.id === id);
+        if (!d) return;
+
+        currentDetailProductId = id;
+
+        const modal = document.getElementById('productDetailsModal');
+        if (!modal) return;
+
+        const titleEl = document.getElementById('detailModalTitle');
+        if (titleEl) titleEl.textContent = d.name;
+
+        const imgEl = document.getElementById('detailModalImg');
+        if (imgEl) {
+          imgEl.src = d.img || placeholderImg;
+          imgEl.alt = d.name;
+          imgEl.onerror = function() {
+            this.onerror = null;
+            this.src = placeholderImg;
+          };
+        }
+
+        const badgeEl = document.getElementById('detailModalBadge');
+        if (badgeEl) {
+          badgeEl.textContent = d.category;
+          const isBridal = d.category === 'Bridal Collection';
+          badgeEl.className = `cat-badge ${isBridal ? 'bridal-badge' : ''}`;
+        }
+
+        const priceEl = document.getElementById('detailModalPrice');
+        if (priceEl) priceEl.textContent = formatPrice(d);
+
+        const descEl = document.getElementById('detailModalDesc');
+        if (descEl) descEl.textContent = d.desc || '';
+
+        const sareeColorInput = document.getElementById('customSareeColor');
+        if (sareeColorInput) sareeColorInput.value = '';
+        const kuchuStyleSelect = document.getElementById('customKuchuStyle');
+        if (kuchuStyleSelect) kuchuStyleSelect.selectedIndex = 0;
+        const beadPrefSelect = document.getElementById('customBeadPreference');
+        if (beadPrefSelect) beadPrefSelect.selectedIndex = 0;
+        const customNotesText = document.getElementById('customNotes');
+        if (customNotesText) customNotesText.value = '';
+
+        const wishlistBtn = document.getElementById('detailModalWishlistBtn');
+        if (wishlistBtn) {
+          wishlistBtn.textContent = isWishlisted(d.id) ? '❤️' : '🤍';
+          wishlistBtn.onclick = () => {
+            toggleWishlist(d.id, d.name);
+            wishlistBtn.textContent = isWishlisted(d.id) ? '❤️' : '🤍';
+          };
+        }
+
+        const detailCartBtn = document.getElementById('detailModalCartBtn');
+        if (detailCartBtn) {
+          detailCartBtn.onclick = () => {
+            addCustomizedToCart(d.id);
+          };
+        }
+
+        modal.style.display = 'flex';
+      }
+
+      function closeProductDetails(e) {
+        if (e && e.target !== e.currentTarget) return;
+        const modal = document.getElementById('productDetailsModal');
+        if (modal) modal.style.display = 'none';
+      }
+
+      function addCustomizedToCart(id) {
+        const d = DESIGNS.find(item => item.id === id);
+        if (!d) return;
+
+        const sareeColor = document.getElementById('customSareeColor').value.trim();
+        const kuchuStyle = document.getElementById('customKuchuStyle').value;
+        const beadPref = document.getElementById('customBeadPreference').value;
+        const notes = document.getElementById('customNotes').value.trim();
+
+        let customizationDetails = [];
+        if (sareeColor) customizationDetails.push(`Color: ${sareeColor}`);
+        if (kuchuStyle) customizationDetails.push(`Style: ${kuchuStyle}`);
+        if (beadPref) customizationDetails.push(`Beads: ${beadPref}`);
+        if (notes) customizationDetails.push(`Notes: ${notes}`);
+
+        const customString = customizationDetails.join(', ');
+        const priceVal = getPriceValue(d);
+        
+        APP.cart.push({
+          id: d.id,
+          name: customString ? `${d.name} (${customString})` : d.name,
+          price: priceVal,
+          qty: 1,
+          img: d.img || placeholderImg,
+          customization: { sareeColor, kuchuStyle, beadPref, notes }
+        });
+
+        saveState();
+        updateCartBadge();
+        closeProductDetails();
+        showToast('✅ Customized design added to cart!');
+      }
+
       function openProductModal(id) {
+        currentDetailProductId = id;
         const d = DESIGNS.find(item => item.id === id);
         if (!d) return;
 
@@ -3437,8 +3571,12 @@
 
         const imgEl = document.getElementById('modalProductImg');
         if (imgEl) {
-          imgEl.src = d.img;
+          imgEl.src = d.img || placeholderImg;
           imgEl.alt = d.name;
+          imgEl.onerror = function() {
+            this.onerror = null;
+            this.src = placeholderImg;
+          };
         }
 
         const catEl = document.getElementById('modalProductCategory');
