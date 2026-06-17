@@ -918,8 +918,8 @@ def clear_logs(current_user: User) -> RouteResponse:
 
 @app.route('/api/admin/bills/add', methods=['POST'])
 @admin_required
-def handle_bills_add(current_user: User) -> None:
-    return handle_bills(current_user)
+def handle_bills_add(current_user: User) -> RouteResponse:
+    return handle_bills.__wrapped__(current_user)
 
 
 # ─── SUGGESTION ROUTES ────────────────────────────────────────
@@ -1479,7 +1479,7 @@ def add_security_headers(response: Response) -> Response:
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://apis.google.com https://accounts.google.com https://cdn.jsdelivr.net; "
         "frame-src 'self' https://pureweaves-63804.firebaseapp.com https://accounts.google.com; "
-        "connect-src 'self' https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com;"
+        "connect-src 'self' https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com;"
     )
     return response
 
