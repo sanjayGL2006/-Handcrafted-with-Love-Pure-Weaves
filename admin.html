@@ -1325,6 +1325,19 @@ function fetchBackendData() {
     STORE.coupons = Array.isArray(coupons) ? coupons : [];
     STORE.orders = Array.isArray(orders) ? orders : [];
 
+    try {
+      const state = JSON.parse(localStorage.getItem('pureweaves_state') || '{}');
+      state.coupons = STORE.coupons.map(c => ({
+        code: c.code,
+        discount: c.discount,
+        maxUses: c.max_uses,
+        usedCount: c.used_count,
+        expiry: c.expiry,
+        active: c.is_active
+      }));
+      localStorage.setItem('pureweaves_state', JSON.stringify(state));
+    } catch (e) { }
+
     // Render Stats
     const analytics = reports.analytics || {};
     document.getElementById('statCustomers').textContent = analytics.total_customers || STORE.customers.length;

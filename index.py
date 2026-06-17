@@ -609,13 +609,14 @@ def place_order(current_user: User) -> RouteResponse:
     discount = 0
     if coupon_code:
         coupon = Coupon.query.filter_by(code=coupon_code.upper(), is_active=True).first()
-        if coupon:
-            if datetime.datetime.utcnow() > coupon.expires_at:
-                return jsonify({'error': 'Coupon has expired'}), 400
-            if coupon.used_count >= coupon.max_uses:
-                return jsonify({'error': 'Coupon usage limit reached'}), 400
-            discount = total * (coupon.discount_percent / 100)
-            coupon.used_count += 1
+        if not coupon:
+            return jsonify({'error': 'Invalid coupon code'}), 400
+        if datetime.datetime.utcnow() > coupon.expires_at:
+            return jsonify({'error': 'Coupon has expired'}), 400
+        if coupon.used_count >= coupon.max_uses:
+            return jsonify({'error': 'Coupon usage limit reached'}), 400
+        discount = total * (coupon.discount_percent / 100)
+        coupon.used_count += 1
             
     order = Order(user_id=current_user.id, total_amount=total - discount,
                   coupon_code=coupon_code, discount=discount)
@@ -1226,10 +1227,14 @@ def handle_bills(current_user: User) -> None:
         discount = 0.0
         if coupon_code:
             coupon = Coupon.query.filter_by(code=coupon_code, is_active=True).first()
-            if coupon:
-                if datetime.datetime.utcnow() <= coupon.expires_at and coupon.used_count < coupon.max_uses:
-                    discount = subtotal * (coupon.discount_percent / 100.0)
-                    coupon.used_count += 1
+            if not coupon:
+                return jsonify({'error': 'Invalid coupon code'}), 400
+            if datetime.datetime.utcnow() > coupon.expires_at:
+                return jsonify({'error': 'Coupon has expired'}), 400
+            if coupon.used_count >= coupon.max_uses:
+                return jsonify({'error': 'Coupon usage limit reached'}), 400
+            discount = subtotal * (coupon.discount_percent / 100.0)
+            coupon.used_count += 1
                     
         tax = (subtotal - discount) * 0.05
         total = (subtotal - discount) + tax
