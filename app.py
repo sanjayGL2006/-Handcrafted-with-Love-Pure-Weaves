@@ -1325,6 +1325,7 @@ def get_reports() -> None:
             })
             
     # Recent transaction logs for reports
+    bills = Bill.query.order_by(Bill.created_at.desc()).limit(50).all()
     billing_logs = [{
         'id': b.id,
         'customer': b.customer.name if b.customer else 'Unknown Customer',
