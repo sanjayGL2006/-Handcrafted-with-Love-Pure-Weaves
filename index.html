@@ -1950,13 +1950,13 @@
         <div id="tab-profile" style="display:none;">
           <h2 style="font-family:'Playfair Display',serif;font-size:18px;color:var(--deep);margin-bottom:1rem;">My
             Profile</h2>
-          <div class="form-group"><label class="form-label" for="profileName">Name</label><input class="form-input"
-              id="profileName" /></div>
-          <div class="form-group"><label class="form-label" for="profileMobile">Mobile</label><input class="form-input"
-              id="profileMobile" /></div>
-          <div class="form-group"><label class="form-label" for="profileEmail">Email</label><input class="form-input"
-              id="profileEmail" /></div>
-          <button class="btn-add" onclick="saveProfile()">Save Profile</button>
+          <div class="form-group"><label class="form-label" for="profile-name">Name</label><input class="form-input"
+              id="profile-name" name="profile-name" /></div>
+          <div class="form-group"><label class="form-label" for="profile-mobile">Mobile</label><input class="form-input"
+              id="profile-mobile" name="profile-mobile" /></div>
+          <div class="form-group"><label class="form-label" for="profile-email">Email</label><input class="form-input"
+              id="profile-email" name="profile-email" /></div>
+          <button class="btn-add" id="save-profile-btn" onclick="saveProfile()">Save Profile</button>
         </div>
       </div>
     </div>
@@ -2111,13 +2111,13 @@
               <div class="form-group" style="margin-bottom:8px;">
                 <label style="display:block; font-size:12px; margin-bottom:3px; color:var(--color-text-primary);">Saree
                   Body & Border Colors:</label>
-                <input type="text" id="customSareeColor" placeholder="e.g. Royal Blue with Pink Border"
+                <input type="text" id="customize-colors" placeholder="e.g. Royal Blue with Pink Border"
                   style="width:100%; padding:6px 8px; border:1px solid rgba(0,0,0,0.1); border-radius:4px; font-size:13px;" />
               </div>
               <div class="form-group" style="margin-bottom:8px;">
                 <label style="display:block; font-size:12px; margin-bottom:3px; color:var(--color-text-primary);">Kuchu
                   Style / Density:</label>
-                <select id="customKuchuStyle"
+                <select id="customize-style"
                   style="width:100%; padding:6px 8px; border:1px solid rgba(0,0,0,0.1); border-radius:4px; font-size:13px; background:var(--color-background-primary); color:var(--color-text-primary);">
                   <option value="Standard Round Kuchu">Standard Round Kuchu</option>
                   <option value="Bridal Double Thread Bunch">Bridal Double Thread Bunch</option>
@@ -2128,7 +2128,7 @@
               <div class="form-group" style="margin-bottom:8px;">
                 <label style="display:block; font-size:12px; margin-bottom:3px; color:var(--color-text-primary);">Bead &
                   Spacer Option:</label>
-                <select id="customBeadPreference"
+                <select id="customize-beads"
                   style="width:100%; padding:6px 8px; border:1px solid rgba(0,0,0,0.1); border-radius:4px; font-size:13px; background:var(--color-background-primary); color:var(--color-text-primary);">
                   <option value="Antique Gold Beads">Antique Gold Beads</option>
                   <option value="Premium Pearl Bunches">Premium Pearl Bunches</option>
@@ -2140,13 +2140,13 @@
                 <label
                   style="display:block; font-size:12px; margin-bottom:3px; color:var(--color-text-primary);">Special
                   Notes:</label>
-                <textarea id="customNotes" rows="2" placeholder="Custom length, dual colors, or other instructions..."
+                <textarea id="customize-notes" rows="2" placeholder="Custom length, dual colors, or other instructions..."
                   style="width:100%; padding:6px 8px; border:1px solid rgba(0,0,0,0.1); border-radius:4px; font-size:13px; font-family:inherit; resize:vertical;"></textarea>
               </div>
             </div>
 
             <div class="modal-actions" style="display:flex; gap:10px;">
-              <button id="detailModalCartBtn" class="btn-cart"
+              <button id="customize-add-btn" class="btn-cart"
                 style="flex:2; padding:12px; font-size:14px; font-weight:700;">🛒 Add to Cart</button>
               <button id="detailModalWaBtn" class="btn-wa"
                 style="flex:1; padding:12px; font-size:16px; text-align:center; text-decoration:none; display:inline-block;">💬
@@ -2283,21 +2283,21 @@
           </div>
           <div class="middle-band"></div>
           <div class="bottom-block">
-            <form id="reviewForm" onsubmit="event.preventDefault(); submitReview();">
+            <form id="review-form" onsubmit="event.preventDefault(); submitReview();">
               
               <div class="form-group">
                 <label for="reviewName">Username</label>
-                <input type="text" id="reviewName" placeholder="Your name" required>
+                <input type="text" id="reviewName" name="username" placeholder="Your name" required>
               </div>
 
               <div class="form-group">
                 <label for="reviewMobile">Mobile Number</label>
-                <input type="text" id="reviewMobile" placeholder="Your mobile number" required>
+                <input type="text" id="reviewMobile" name="mobile" placeholder="Your mobile number" required>
               </div>
 
               <div class="form-group">
                 <label for="reviewRating">Rating</label>
-                <select id="reviewRating" required>
+                <select id="reviewRating" name="rating" required>
                   <option value="" disabled selected>Select...</option>
                   <option value="1">1) ❤️</option>
                   <option value="2">2) ❤️❤️</option>
@@ -2309,7 +2309,7 @@
 
               <div class="form-group">
                 <label for="reviewText">Your Review</label>
-                <textarea id="reviewText" rows="3" placeholder="Tell us what you think..." required></textarea>
+                <textarea id="reviewText" name="review" rows="3" placeholder="Tell us what you think..." required></textarea>
               </div>
 
               <button type="submit" class="submit-btn">Submit</button>
@@ -2565,6 +2565,10 @@
             APP.coupons = s.coupons || APP.coupons;
             APP.token = s.token || null;
           }
+          const directWishlist = localStorage.getItem('wishlist');
+          if (directWishlist) {
+            APP.wishlist = JSON.parse(directWishlist);
+          }
         } catch (e) { }
         updateCartBadge();
       }
@@ -2575,6 +2579,13 @@
             user: APP.user, cart: APP.cart, wishlist: APP.wishlist, orders: APP.orders, coupons: APP.coupons, token: APP.token
           }));
         } catch (e) { }
+      }
+
+      function updateBottomNavActive(pageId) {
+        document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
+          const clickStr = btn.getAttribute('onclick') || '';
+          btn.classList.toggle('active', clickStr.includes(pageId));
+        });
       }
 
       // ── PAGE NAVIGATION ───────────────────────────────────────
@@ -2594,14 +2605,7 @@
           }
         });
 
-        // Highlight Mobile Bottom Navigation Links
-        document.querySelectorAll('.bottom-nav-btn').forEach(b => {
-          b.classList.remove('active');
-          const clickStr = b.getAttribute('onclick') || '';
-          if (clickStr.includes(`'${page}'`) || clickStr.includes(`"${page}"`)) {
-            b.classList.add('active');
-          }
-        });
+        updateBottomNavActive(page);
 
         const pages = document.querySelectorAll('.page');
         const target = document.getElementById('page-' + page);
@@ -3068,9 +3072,9 @@
           document.getElementById('accountAvatar').textContent = APP.user.name[0].toUpperCase();
           document.getElementById('accountName').textContent = APP.user.name;
           document.getElementById('accountMobile').textContent = APP.user.mobile ? '📱 +91 ' + APP.user.mobile : APP.user.email || '';
-          document.getElementById('profileName').value = APP.user.name || '';
-          document.getElementById('profileMobile').value = APP.user.mobile || '';
-          document.getElementById('profileEmail').value = APP.user.email || '';
+          document.getElementById('profile-name').value = APP.user.name || '';
+          document.getElementById('profile-mobile').value = APP.user.mobile || '';
+          document.getElementById('profile-email').value = APP.user.email || '';
         }
         const list = document.getElementById('ordersList');
         if (!APP.orders.length) {
@@ -3116,20 +3120,28 @@
       }
 
       function saveProfile() {
-        const name = document.getElementById('profileName').value.trim();
-        const mobile = document.getElementById('profileMobile').value.trim();
-        const email = document.getElementById('profileEmail').value.trim();
+        const name = document.getElementById('profile-name').value.trim();
+        const mobile = document.getElementById('profile-mobile').value.trim();
+        const email = document.getElementById('profile-email').value.trim();
 
         if (!name) {
           showToast('⚠️ Name is required.');
           return;
         }
 
+        if (!APP.user) APP.user = {};
         APP.user.name = name;
         APP.user.mobile = mobile;
         APP.user.email = email;
         saveState();
-        document.getElementById('navUserName').textContent = APP.user.name;
+
+        try {
+          const profile = { name, mobile, email };
+          localStorage.setItem('userProfile', JSON.stringify(profile));
+        } catch (e) { }
+
+        const navUserNameEl = document.getElementById('navUserName');
+        if (navUserNameEl) navUserNameEl.textContent = APP.user.name;
 
         if (APP.token) {
           fetch('/api/profile', {
@@ -3342,6 +3354,11 @@
         const msg = document.getElementById('reviewMsg');
         if (!name || !mobile || !review) { msg.style.color = 'var(--maroon)'; msg.textContent = '⚠️ Please fill in all fields.'; return; }
         
+        // Save locally first or upon successful post
+        const localReviews = JSON.parse(localStorage.getItem('reviews') || '[]');
+        localReviews.push({ username: name, rating, review, date: new Date().toISOString() });
+        localStorage.setItem('reviews', JSON.stringify(localReviews));
+
         fetch('/api/reviews', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -3417,6 +3434,9 @@
           showToast('❤️ Added to wishlist!');
         }
         saveState();
+        try {
+          localStorage.setItem('wishlist', JSON.stringify(APP.wishlist));
+        } catch (e) { }
         updateWishlistBtn(id);
       }
 
@@ -3490,13 +3510,13 @@
         const descEl = document.getElementById('detailModalDesc');
         if (descEl) descEl.textContent = d.desc || '';
 
-        const sareeColorInput = document.getElementById('customSareeColor');
+        const sareeColorInput = document.getElementById('customize-colors') || document.getElementById('customSareeColor');
         if (sareeColorInput) sareeColorInput.value = '';
-        const kuchuStyleSelect = document.getElementById('customKuchuStyle');
+        const kuchuStyleSelect = document.getElementById('customize-style') || document.getElementById('customKuchuStyle');
         if (kuchuStyleSelect) kuchuStyleSelect.selectedIndex = 0;
-        const beadPrefSelect = document.getElementById('customBeadPreference');
+        const beadPrefSelect = document.getElementById('customize-beads') || document.getElementById('customBeadPreference');
         if (beadPrefSelect) beadPrefSelect.selectedIndex = 0;
-        const customNotesText = document.getElementById('customNotes');
+        const customNotesText = document.getElementById('customize-notes') || document.getElementById('customNotes');
         if (customNotesText) customNotesText.value = '';
 
         const wishlistBtn = document.getElementById('detailModalWishlistBtn');
@@ -3508,7 +3528,7 @@
           };
         }
 
-        const detailCartBtn = document.getElementById('detailModalCartBtn');
+        const detailCartBtn = document.getElementById('customize-add-btn') || document.getElementById('detailModalCartBtn');
         if (detailCartBtn) {
           detailCartBtn.onclick = () => {
             addCustomizedToCart(d.id);
@@ -3528,10 +3548,15 @@
         const d = DESIGNS.find(item => item.id === id);
         if (!d) return;
 
-        const sareeColor = document.getElementById('customSareeColor').value.trim();
-        const kuchuStyle = document.getElementById('customKuchuStyle').value;
-        const beadPref = document.getElementById('customBeadPreference').value;
-        const notes = document.getElementById('customNotes').value.trim();
+        const colorInput = document.getElementById('customize-colors') || document.getElementById('customSareeColor');
+        const styleSelect = document.getElementById('customize-style') || document.getElementById('customKuchuStyle');
+        const beadsSelect = document.getElementById('customize-beads') || document.getElementById('customBeadPreference');
+        const notesInput = document.getElementById('customize-notes') || document.getElementById('customNotes');
+
+        const sareeColor = colorInput ? colorInput.value.trim() : '';
+        const kuchuStyle = styleSelect ? styleSelect.value : '';
+        const beadPref = beadsSelect ? beadsSelect.value : '';
+        const notes = notesInput ? notesInput.value.trim() : '';
 
         let customizationDetails = [];
         if (sareeColor) customizationDetails.push(`Color: ${sareeColor}`);

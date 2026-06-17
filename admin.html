@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+(function(){
+  const token = localStorage.getItem('adminToken');
+  const secret = localStorage.getItem('pw_admin_secret');
+  if(!token && !secret){
+    window.location.replace('/index.html');
+  }
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Pure Weaves – Admin Dashboard</title>
